@@ -110,3 +110,40 @@ Released under the [MIT License](LICENSE).
 ### Reusing an existing PyTorch
 
 If the installer finds **PyTorch 2.0 or newer** already installed on your system, it creates the environment with `--system-site-packages` and reuses it, downloading only Demucs (a few MB). If PyTorch is missing or older than 2.0, it builds a fully isolated environment and downloads its own copy (~250 MB CPU, ~2.5 GB CUDA).
+
+### Manual setup (no installer)
+
+If you would rather not run a downloaded script, start the engine yourself.
+`engine/xvviix_engine.py` is plain Python with no third-party imports, so you
+can read it first.
+
+**Windows**
+
+```bat
+git clone https://github.com/xvviix/song-splitter
+cd song-splitter\engine
+
+python -m venv .venv
+.venv\Scripts\activate
+
+pip install demucs soundfile
+
+python xvviix_engine.py
+```
+
+**macOS / Linux**
+
+```bash
+git clone https://github.com/xvviix/song-splitter
+cd song-splitter/engine
+
+python3 -m venv .venv
+source .venv/bin/activate
+
+pip install demucs soundfile
+
+python xvviix_engine.py
+```
+
+When the terminal prints `READY`, open the site and pick **Best**. The page
+polls `127.0.0.1:8765` and unlocks it automatically. Press `Ctrl+C` to stop.
