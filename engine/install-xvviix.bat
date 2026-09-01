@@ -35,11 +35,24 @@ for /f "tokens=2" %%v in ('python --version 2^>^&1') do set PYVER=%%v
 echo        OK - Python !PYVER!
 echo.
 
-echo  [2/4] Creating isolated environment...
+echo  [2/4] Creating environment...
+set "REUSE=0"
+python -c "import torch,sys; v=tuple(int(x) for x in torch.__version__.split('.')[:2]); sys.exit(0 if v>=(2,0) else 1)" >nul 2>&1
+if not errorlevel 1 (
+    set "REUSE=1"
+    for /f "delims=" %%v in ('python -c "import torch;print(torch.__version__)" 2^>nul') do set TVER=%%v
+    for /f "delims=" %%c in ('python -c "import torch;print('yes' if torch.cuda.is_available() else 'no')" 2^>nul') do set TCUDA=%%c
+    echo        Found PyTorch !TVER! on your system ^(CUDA: !TCUDA!^)
+    echo        Reusing it - only a few MB will be downloaded.
+)
 if exist ".venv\Scripts\python.exe" (
-    echo        OK - already exists
+    echo        OK - environment already exists
 ) else (
-    python -m venv .venv
+    if "!REUSE!"=="1" (
+        python -m venv --system-site-packages .venv
+    ) else (
+        python -m venv .venv
+    )
     if errorlevel 1 (
         echo        FAILED - could not create the environment
         pause
@@ -54,6 +67,11 @@ echo  [3/4] Installing the AI engine...
 if exist ".venv\.installed" (
     echo        OK - already installed
     goto writeengine
+)
+
+if "!REUSE!"=="1" (
+    echo        Using the PyTorch already on your system - skipping the big download.
+    goto installdemucs
 )
 
 echo        Detecting graphics card...
@@ -79,6 +97,7 @@ if errorlevel 1 (
     exit /b 1
 )
 
+:installdemucs
 "%PY%" -m pip install demucs soundfile
 if errorlevel 1 (
     echo        FAILED - could not install Demucs

@@ -67,11 +67,24 @@ for /f "tokens=2" %%v in ('python --version 2^>^&1') do set PYVER=%%v
 echo        OK - Python !PYVER!
 echo.
 
-echo  [2/4] Creating isolated environment...
+echo  [2/4] Creating environment...
+set "REUSE=0"
+python -c "import torch,sys; v=tuple(int(x) for x in torch.__version__.split('.')[:2]); sys.exit(0 if v>=(2,0) else 1)" >nul 2>&1
+if not errorlevel 1 (
+    set "REUSE=1"
+    for /f "delims=" %%v in ('python -c "import torch;print(torch.__version__)" 2^>nul') do set TVER=%%v
+    for /f "delims=" %%c in ('python -c "import torch;print(\'yes\' if torch.cuda.is_available() else \'no\')" 2^>nul') do set TCUDA=%%c
+    echo        Found PyTorch !TVER! on your system ^(CUDA: !TCUDA!^)
+    echo        Reusing it - only a few MB will be downloaded.
+)
 if exist ".venv\\Scripts\\python.exe" (
-    echo        OK - already exists
+    echo        OK - environment already exists
 ) else (
-    python -m venv .venv
+    if "!REUSE!"=="1" (
+        python -m venv --system-site-packages .venv
+    ) else (
+        python -m venv .venv
+    )
     if errorlevel 1 (
         echo        FAILED - could not create the environment
         pause
@@ -86,6 +99,11 @@ echo  [3/4] Installing the AI engine...
 if exist ".venv\\.installed" (
     echo        OK - already installed
     goto writeengine
+)
+
+if "!REUSE!"=="1" (
+    echo        Using the PyTorch already on your system - skipping the big download.
+    goto installdemucs
 )
 
 echo        Detecting graphics card...
@@ -111,6 +129,7 @@ if errorlevel 1 (
     exit /b 1
 )
 
+:installdemucs
 "%PY%" -m pip install demucs soundfile
 if errorlevel 1 (
     echo        FAILED - could not install Demucs
@@ -215,11 +234,23 @@ fi
 echo -e "       ${{G}}OK - $($PY --version)${{N}}"
 echo
 
-echo "  [2/4] Creating isolated environment..."
+echo "  [2/4] Creating environment..."
+REUSE=0
+if "$PY" -c "import torch,sys; v=tuple(int(x) for x in torch.__version__.split('.')[:2]); sys.exit(0 if v>=(2,0) else 1)" >/dev/null 2>&1; then
+  REUSE=1
+  TVER=$("$PY" -c "import torch;print(torch.__version__)" 2>/dev/null)
+  TCUDA=$("$PY" -c "import torch;print('yes' if torch.cuda.is_available() else 'no')" 2>/dev/null)
+  echo -e "       ${{G}}Found PyTorch $TVER on your system (CUDA: $TCUDA)${{N}}"
+  echo "       Reusing it - only a few MB will be downloaded."
+fi
 if [ -x ".venv/bin/python" ]; then
-  echo -e "       ${{G}}OK - already exists${{N}}"
+  echo -e "       ${{G}}OK - environment already exists${{N}}"
 else
-  "$PY" -m venv .venv || {{ echo -e "       ${{R}}FAILED${{N}}"; exit 1; }}
+  if [ "$REUSE" = "1" ]; then
+    "$PY" -m venv --system-site-packages .venv || {{ echo -e "       ${{R}}FAILED${{N}}"; exit 1; }}
+  else
+    "$PY" -m venv .venv || {{ echo -e "       ${{R}}FAILED${{N}}"; exit 1; }}
+  fi
   echo -e "       ${{G}}OK - created${{N}}"
 fi
 VPY=".venv/bin/python"
@@ -230,7 +261,9 @@ if [ -f ".venv/.installed" ]; then
   echo -e "       ${{G}}OK - already installed${{N}}"
 else
   "$VPY" -m pip install --quiet --upgrade pip
-  if command -v nvidia-smi >/dev/null 2>&1; then
+  if [ "$REUSE" = "1" ]; then
+    echo "       Using the PyTorch already on your system - skipping the big download."
+  elif command -v nvidia-smi >/dev/null 2>&1; then
     echo "       NVIDIA GPU detected - installing CUDA build (about 2.5 GB)"
     "$VPY" -m pip install torch torchaudio --index-url https://download.pytorch.org/whl/cu121 \\
       || "$VPY" -m pip install torch torchaudio --index-url https://download.pytorch.org/whl/cpu

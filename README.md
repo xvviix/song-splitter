@@ -106,3 +106,7 @@ Original concept by **[Zilola Egamberganova](https://github.com/zilolaegambergan
 Released under the [MIT License](LICENSE).
 
 </div>
+
+### Reusing an existing PyTorch
+
+If the installer finds **PyTorch 2.0 or newer** already installed on your system, it creates the environment with `--system-site-packages` and reuses it, downloading only Demucs (a few MB). If PyTorch is missing or older than 2.0, it builds a fully isolated environment and downloads its own copy (~250 MB CPU, ~2.5 GB CUDA).
