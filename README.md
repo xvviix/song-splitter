@@ -41,18 +41,18 @@ The site has a **Quality** switch:
 
 | Mode | Engine | Where it runs | Setup |
 | --- | --- | --- | --- |
-| **Fast** *(default)* | JavaScript DSP | Your browser | None - works instantly |
-| **Best** | Demucs `htdemucs` | Your own computer | One-click installer |
+| **Browser** *(default)* | JavaScript DSP | Your browser | None - works instantly |
+| **Local engine** | Demucs `htdemucs` | Your own computer | One-click installer |
 
-**Fast** works everywhere with zero setup and is genuinely offline.
+**Browser** works everywhere with zero setup and is genuinely offline.
 
-**Best** runs the real Demucs AI model locally. Picking it opens a guided installer
+**Local engine** runs the real Demucs AI model locally. Picking it opens a guided installer
 that downloads two small files; double-clicking the installer sets up Python, PyTorch
 and Demucs automatically inside its own folder. Once the engine is running, the site
-detects it and unlocks Best quality. It uses your GPU if you have an NVIDIA card.
+detects it and unlocks the local engine. It uses your GPU if you have an NVIDIA card.
 
 Nothing is ever uploaded in either mode, and there is no cloud service, account or
-quota involved. If the local engine is not running, Best silently falls back to the
+quota involved. If the local engine is not running, it silently falls back to the
 browser engine so a split never fails.
 
 ## Requirements
@@ -145,5 +145,5 @@ pip install demucs soundfile
 python xvviix_engine.py
 ```
 
-When the terminal prints `READY`, open the site and pick **Best**. The page
+When the terminal prints `READY`, open the site and pick **Local engine**. The page
 polls `127.0.0.1:8765` and unlocks it automatically. Press `Ctrl+C` to stop.
