@@ -1,0 +1,23 @@
+# Build output
+_site/
+
+# Node / tooling (never part of the site)
+node_modules/
+package.json
+package-lock.json
+*.mjs
+
+# Local sandbox leftovers
+Downloads/
+.cache/
+.config/
+.npm/
+.sudo_as_admin_successful
+
+# OS / editor
+.DS_Store
+Thumbs.db
+desktop.ini
+.idea/
+.vscode/
+*.swp

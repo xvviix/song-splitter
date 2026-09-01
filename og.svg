@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" fill="none">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#c6fb63"/><stop offset="1" stop-color="#5eead4"/>
+    </linearGradient>
+    <radialGradient id="o1" cx="0.5" cy="0.5">
+      <stop offset="0" stop-color="#3f6b1f" stop-opacity="0.75"/><stop offset="1" stop-color="#3f6b1f" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="o2" cx="0.5" cy="0.5">
+      <stop offset="0" stop-color="#1c5f66" stop-opacity="0.75"/><stop offset="1" stop-color="#1c5f66" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1200" height="630" fill="#07080c"/>
+  <circle cx="130" cy="90" r="360" fill="url(#o1)"/>
+  <circle cx="1080" cy="560" r="330" fill="url(#o2)"/>
+  <rect x="88" y="92" width="86" height="86" rx="26" fill="url(#g)"/>
+  <g stroke="#0d1206" stroke-width="7" stroke-linecap="round">
+    <path d="M108 122v26M124 108v54M140 124v22M156 112v46"/>
+  </g>
+  <text x="196" y="152" font-family="Inter,Segoe UI,sans-serif" font-size="54" font-weight="800" fill="#f4f6fb" letter-spacing="-1">XVVIIX</text>
+  <text x="88" y="300" font-family="Inter,Segoe UI,sans-serif" font-size="86" font-weight="800" fill="#f4f6fb" letter-spacing="-3.5">Split any song</text>
+  <text x="88" y="392" font-family="Inter,Segoe UI,sans-serif" font-size="86" font-weight="800" letter-spacing="-3.5" fill="url(#g)">into clean stems.</text>
+  <text x="88" y="452" font-family="Inter,Segoe UI,sans-serif" font-size="27" fill="#8b93a7">Vocals - Drums - Bass - Instrumental - plus a built-in master editor.</text>
+  <g transform="translate(88,506)">
+    <rect width="290" height="52" rx="26" fill="#131c0f" stroke="#35462c"/>
+    <circle cx="30" cy="26" r="6" fill="#c6fb63"/>
+    <text x="50" y="34" font-family="Inter,Segoe UI,sans-serif" font-size="19" font-weight="600" fill="#c6fb63">Runs 100% on your machine</text>
+  </g>
+  <g transform="translate(940,470)" stroke="url(#g)" stroke-width="11" stroke-linecap="round">
+    <path d="M0 60v-30M32 60V10M64 60V-24M96 60V4M128 60v-42M160 60v-16"/>
+  </g>
+</svg>

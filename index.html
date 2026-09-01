@@ -1,0 +1,1221 @@
+<!doctype html>
+<html lang="en" data-app="XVVIIX"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>XVVIIX - AI Song Splitter</title>
+<meta name="description" content="XVVIIX splits any song into vocals, drums, bass and instrumental stems right inside your browser, then lets you remix them in a built-in master editor. No upload, no install, works offline.">
+<meta name="author" content="XVVIIX">
+<meta name="credits" content="Original idea by Zilola Egamberganova">
+<meta name="theme-color" content="#07080c">
+<meta name="color-scheme" content="dark">
+<link rel="canonical" href="https://xvviix.github.io/song-splitter/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="XVVIIX">
+<meta property="og:title" content="XVVIIX - AI Song Splitter">
+<meta property="og:description" content="Split any song into stems entirely in your browser - no upload, no install - then remix them in the built-in master editor.">
+<meta property="og:url" content="https://xvviix.github.io/song-splitter/">
+<meta property="og:image" content="https://xvviix.github.io/song-splitter/og.svg">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="XVVIIX - AI Song Splitter">
+<meta name="twitter:description" content="Split any song into stems, then remix them in the browser.">
+<meta name="twitter:image" content="https://xvviix.github.io/song-splitter/og.svg">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%230b0e14'/%3E%3Cg stroke='%23c6fb63' stroke-width='2.6' stroke-linecap='round'%3E%3Cpath d='M7 12.5v7M12 8v16M17 13v6M22 7.5v17M27 12v8' /%3E%3C/g%3E%3C/svg%3E">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%230b0e14'/%3E%3Cg stroke='%23c6fb63' stroke-width='2.6' stroke-linecap='round'%3E%3Cpath d='M7 12.5v7M12 8v16M17 13v6M22 7.5v17M27 12v8'/%3E%3C/g%3E%3C/svg%3E">
+<link rel="manifest" href="manifest.webmanifest">
+<style>
+@keyframes float1{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(60px,-40px) scale(1.15)}}
+@keyframes float2{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-70px,50px) scale(1.2)}}
+@keyframes shimmer{0%{background-position:0% 50%}100%{background-position:200% 50%}}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.45;transform:scale(.82)}}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@keyframes eq{0%,100%{height:22%}50%{height:100%}}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+:root{
+ --bg:#07080c;--panel:#0f1219;--panel2:#141821;--line:#232936;--line2:#2e3646;
+ --text:#f4f6fb;--muted:#8b93a7;--dim:#5c6478;
+ --accent:#c6fb63;--accent2:#5eead4;--accent3:#a78bfa;--danger:#ff7991;
+ --glow:0 0 0 1px #ffffff08, 0 20px 60px -18px #000c;
+ --radius:20px
+}
+*{box-sizing:border-box}
+::selection{background:var(--accent);color:#0b1005}
+body{margin:0;color:var(--text);min-height:100vh;overflow-x:hidden;
+ font:14px/1.5 Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,sans-serif;
+ background:var(--bg);-webkit-font-smoothing:antialiased}
+body::before,body::after{content:'';position:fixed;border-radius:50%;filter:blur(110px);z-index:0;pointer-events:none}
+body::before{width:620px;height:620px;top:-240px;left:-140px;background:radial-gradient(circle,#3f6b1f88,transparent 70%);animation:float1 22s ease-in-out infinite}
+body::after{width:560px;height:560px;bottom:-260px;right:-120px;background:radial-gradient(circle,#1c5f6688,transparent 70%);animation:float2 26s ease-in-out infinite}
+button{font:inherit;color:inherit;border:0;cursor:pointer;background:none}
+input[type=range]{-webkit-appearance:none;appearance:none;background:transparent;height:18px;cursor:pointer}
+input[type=range]::-webkit-slider-runnable-track{height:5px;border-radius:99px;background:#2b3242}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:15px;height:15px;margin-top:-5px;border-radius:50%;
+ background:var(--accent);box-shadow:0 0 0 4px #c6fb631f,0 2px 6px #0008;transition:.15s}
+input[type=range]::-webkit-slider-thumb:hover{box-shadow:0 0 0 7px #c6fb632b,0 2px 8px #000a}
+input[type=range]::-moz-range-track{height:5px;border-radius:99px;background:#2b3242}
+input[type=range]::-moz-range-thumb{border:0;width:15px;height:15px;border-radius:50%;background:var(--accent)}
+
+.app{display:flex;min-height:100vh;position:relative;z-index:1}
+
+/* ---------- sidebar ---------- */
+.side{width:262px;padding:26px 16px;display:flex;flex-direction:column;gap:34px;
+ border-right:1px solid var(--line);background:linear-gradient(180deg,#0d1015e8,#0a0c11e8);backdrop-filter:blur(18px);
+ position:sticky;top:0;height:100vh}
+.brand{display:flex;align-items:center;gap:11px;font-size:21px;font-weight:800;letter-spacing:-.8px;padding:4px 10px}
+.logo{width:34px;height:34px;border-radius:11px;display:grid;place-items:center;color:#0d1206;
+ background:linear-gradient(135deg,var(--accent),var(--accent2));box-shadow:0 6px 22px -6px var(--accent)}
+.brand span{background:linear-gradient(90deg,#fff,#b9c2d4);-webkit-background-clip:text;background-clip:text;color:transparent}
+.nav{display:grid;gap:5px}
+.nav button{text-align:left;padding:11px 13px;border-radius:12px;color:var(--muted);display:flex;gap:12px;align-items:center;
+ font-weight:550;position:relative;transition:.18s}
+.nav button:hover{background:#ffffff09;color:var(--text)}
+.nav button.active{background:linear-gradient(90deg,#c6fb6318,transparent);color:var(--text)}
+.nav button.active::before{content:'';position:absolute;left:0;top:9px;bottom:9px;width:3px;border-radius:99px;background:var(--accent);box-shadow:0 0 12px var(--accent)}
+.nav button.active svg{color:var(--accent)}
+.nav svg{width:17px;flex:none}
+.side-foot{margin-top:auto;color:var(--dim);font-size:11.5px;padding:14px;line-height:1.7;
+ border:1px solid var(--line);border-radius:14px;background:#ffffff05}
+
+/* ---------- layout / header ---------- */
+.owner{display:flex;align-items:center;gap:9px;margin:10px 0;padding:9px 0;text-decoration:none;color:inherit;border-top:1px solid var(--line);border-bottom:1px solid var(--line);transition:.18s}
+.owner:hover{padding-left:5px}
+.owner:hover .owner-dot{transform:scale(1.08);box-shadow:0 5px 18px -4px var(--accent)}
+.owner:hover .owner-gh{color:var(--accent2);opacity:1}
+.owner-dot{transition:.18s}
+.owner-gh{width:14px;flex:none;margin-left:auto;color:var(--dim);opacity:.7;transition:.18s}
+.owner-dot{width:26px;height:26px;flex:none;border-radius:50%;display:grid;place-items:center;font-size:9.5px;font-weight:800;color:#0d1206;letter-spacing:.3px;background:linear-gradient(135deg,var(--accent),var(--accent2));box-shadow:0 4px 14px -5px var(--accent)}
+.owner b{display:block;font-size:11.5px;font-weight:700;letter-spacing:-.1px;line-height:1.3;background:linear-gradient(90deg,#fff,#aab4c8);-webkit-background-clip:text;background-clip:text;color:transparent}
+.owner i{display:block;font-style:normal;font-size:9.5px;letter-spacing:1.1px;text-transform:uppercase;font-weight:700;color:var(--accent2);margin-top:1px}
+
+.engine-bar[hidden]{display:none!important}
+.engine-bar{display:flex;align-items:center;gap:14px;padding:14px 18px;margin-bottom:24px;border-radius:16px;
+ border:1px solid var(--line2);background:linear-gradient(120deg,#1b1526,#141822);animation:rise .4s ease both;flex-wrap:wrap}
+.engine-bar.ok{border-color:#2f5b3a;background:linear-gradient(120deg,#132014,#111a17)}
+.engine-bar.busy{border-color:#3c4557}
+.eng-ico{width:36px;height:36px;flex:none;border-radius:12px;display:grid;place-items:center;font-size:15px;
+ background:#241d38;color:var(--accent3);border:1px solid #3b3163}
+.engine-bar.ok .eng-ico{background:#16281a;color:var(--accent);border-color:#2f5b3a;box-shadow:0 0 18px -6px var(--accent)}
+.engine-bar.busy .eng-ico{animation:spin 1.1s linear infinite;border-radius:50%;border:2px solid #333c4d;border-top-color:var(--accent);color:transparent;background:none}
+.eng-txt{flex:1;min-width:190px;line-height:1.45}
+.eng-txt b{display:block;font-size:13px}
+.eng-txt span{display:block;color:var(--muted);font-size:11.5px;margin-top:2px}
+.eng-actions{display:flex;gap:8px;flex-wrap:wrap}
+.eng-btn{display:inline-block;text-decoration:none;font-size:12px;font-weight:700;padding:9px 15px;border-radius:11px;color:#0d1206;
+ background:linear-gradient(135deg,var(--accent),var(--accent2));box-shadow:0 10px 24px -12px var(--accent);transition:.18s}
+.eng-btn:hover{transform:translateY(-2px);filter:brightness(1.07)}
+.eng-btn.ghost{background:none;color:var(--muted);border:1px solid var(--line);box-shadow:none}
+.eng-btn.ghost:hover{color:var(--text);border-color:var(--line2);background:#ffffff08}
+.modalbox.setup{width:min(560px,100%)}
+.steps{list-style:none;counter-reset:s;padding:0;margin:22px 0 0}
+.steps li{counter-increment:s;position:relative;padding:0 0 18px 40px}
+.steps li::before{content:counter(s);position:absolute;left:0;top:-1px;width:26px;height:26px;border-radius:9px;
+ display:grid;place-items:center;font-size:11px;font-weight:800;color:#0d1206;
+ background:linear-gradient(135deg,var(--accent),var(--accent2))}
+.steps li::after{content:'';position:absolute;left:13px;top:30px;bottom:4px;width:1px;background:var(--line)}
+.steps li:last-child::after{display:none}
+.steps b{font-size:13px;display:block;margin-bottom:7px}
+.steps code{display:block;background:#0b0e14;border:1px solid var(--line);border-radius:10px;padding:10px 12px;
+ font:11.5px ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--accent2);overflow-x:auto;white-space:pre-wrap;word-break:break-all}
+.steps small{display:block;color:var(--dim);font-size:11px;margin-top:6px}
+.inst-steps{display:grid;gap:14px;margin:20px 0 4px}
+.ist{display:flex;gap:13px;align-items:flex-start;padding:13px;border-radius:14px;border:1px solid var(--line);background:var(--panel2);transition:.2s}
+.ist.done{border-color:#2f5b3a;background:linear-gradient(100deg,#132014,#111a17)}
+.ist.active{border-color:var(--accent);box-shadow:0 0 0 3px #c6fb631a}
+.istn{width:25px;height:25px;flex:none;border-radius:8px;display:grid;place-items:center;font-size:11px;font-weight:800;color:#0d1206;background:linear-gradient(135deg,var(--accent),var(--accent2))}
+.ist.done .istn::before{content:"✓"}
+.ist.done .istn{font-size:0}
+.ist b{display:block;font-size:12.5px;margin-bottom:3px}
+.ist small{display:block;color:var(--muted);font-size:11px;line-height:1.6}
+.ist code{background:#0b0e14;border:1px solid var(--line);border-radius:5px;padding:1px 5px;font:10.5px ui-monospace,Menlo,monospace;color:var(--accent2)}
+.ist-btns{display:flex;gap:7px;margin-top:9px;align-items:center;flex-wrap:wrap}
+.inst-stat{font-size:10.5px;color:var(--dim)}
+.inst-stat.ok{color:var(--accent)}
+.inst-stat.wait{color:#ffcf8e}
+.disclaim a{color:var(--accent2)}
+.disclaim{color:var(--dim);font-size:11.5px;line-height:1.6;margin:18px 0 0;padding:12px;border:1px solid var(--line);border-radius:12px;background:#0b0e14}
+.setup-foot{border-top:1px solid var(--line);margin-top:4px;padding-top:16px}
+.eng-url{display:block;margin-bottom:14px}
+.eng-url span{display:block;font-size:9.5px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:var(--dim);margin-bottom:6px}
+.eng-url input{width:100%;background:#0b0e14;border:1px solid var(--line);border-radius:10px;padding:10px 12px;color:var(--text);
+ font:12px ui-monospace,SFMono-Regular,Menlo,monospace;outline:none;transition:.15s}
+.eng-url input:focus{border-color:var(--accent);box-shadow:0 0 0 3px #c6fb631a}
+.setup-btns{display:flex;gap:10px;justify-content:flex-end;align-items:center}
+.setup-btns .close{margin-top:0}
+.main{max-width:1220px;width:100%;margin:0 auto;padding:44px 50px 90px;animation:rise .5s ease both}
+.top{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;margin-bottom:38px}
+.eyebrow{font-weight:800;text-transform:uppercase;letter-spacing:2.4px;font-size:10.5px;
+ background:linear-gradient(90deg,var(--accent),var(--accent2),var(--accent3),var(--accent));background-size:200% auto;
+ -webkit-background-clip:text;background-clip:text;color:transparent;animation:shimmer 5s linear infinite}
+.top h1{font-size:40px;line-height:1.08;letter-spacing:-2px;margin:10px 0 8px;font-weight:800;
+ background:linear-gradient(180deg,#fff 30%,#96a0b6);-webkit-background-clip:text;background-clip:text;color:transparent}
+.top p{color:var(--muted);margin:0;font-size:14.5px}
+.badge{border:1px solid #35462c;border-radius:99px;padding:9px 15px;color:var(--accent);font-size:12px;font-weight:650;
+ background:#131c0f;display:flex;align-items:center;gap:8px;white-space:nowrap;box-shadow:inset 0 0 22px #c6fb630f}
+#netPill{border-color:#5a4a22;background:#221b0e;color:#ffcf8e;box-shadow:inset 0 0 22px #ffcf8e0f}
+#netPill[hidden]{display:none!important}
+#netPill::before{background:#ffcf8e;box-shadow:0 0 10px #ffcf8e}
+.badge::before{content:'';width:7px;height:7px;border-radius:50%;background:var(--accent);box-shadow:0 0 10px var(--accent);animation:pulse 1.9s infinite}
+.eqbars{display:flex;align-items:flex-end;gap:3px;height:34px;padding:0 4px}
+.eqbars i{width:3px;border-radius:99px;background:linear-gradient(180deg,var(--accent),var(--accent2));animation:eq 1.05s ease-in-out infinite;opacity:.85}
+.grid{display:grid;grid-template-columns:1.55fr 1fr;gap:20px;align-items:start}
+
+/* ---------- cards ---------- */
+.grid>section:nth-child(2) .card{animation-delay:.08s}
+.card{position:relative;border-radius:var(--radius);padding:26px;border:1px solid var(--line);
+ background:linear-gradient(160deg,#151a23f2,#0f131bf2);box-shadow:var(--glow);backdrop-filter:blur(12px);
+ animation:rise .5s ease both}
+.card::after{content:'';position:absolute;inset:0 0 auto;height:1px;border-radius:var(--radius) var(--radius) 0 0;
+ background:linear-gradient(90deg,transparent,#ffffff26,transparent);pointer-events:none}
+.section-title{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:18px}
+.section-title h3{margin:0;font-size:14px;font-weight:700;letter-spacing:-.2px;display:flex;align-items:center;gap:8px}
+.section-title h3::before{content:'';width:3px;height:14px;border-radius:99px;background:linear-gradient(var(--accent),var(--accent2))}
+.reset{font-size:11.5px;color:var(--muted);padding:6px 11px;border-radius:9px;border:1px solid var(--line);transition:.15s}
+.reset:hover{color:var(--text);border-color:var(--line2);background:#ffffff08}
+
+/* ---------- upload ---------- */
+.upload{min-height:320px;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;
+ border:1.5px dashed #3c4557;background:linear-gradient(160deg,#11161ef2,#0d1118f2);transition:.25s}
+.upload.over{border-color:var(--accent);background:#141c11f2;transform:scale(1.008);box-shadow:0 0 0 1px var(--accent),0 24px 60px -20px #c6fb6355}
+.upload .upload-icon{width:64px;height:64px;border-radius:20px;display:grid;place-items:center;color:var(--accent);margin-bottom:18px;
+ background:linear-gradient(150deg,#1e2a1a,#18201c);border:1px solid #33422a;box-shadow:0 12px 34px -12px #c6fb6366;transition:.25s}
+.upload:hover .upload-icon{transform:translateY(-3px) rotate(-4deg)}
+.upload h2{margin:0 0 8px;font-size:21px;letter-spacing:-.6px;max-width:90%;overflow-wrap:anywhere}
+.upload p{margin:0;color:var(--muted)}
+.upload .browse{color:var(--accent);font-weight:700;cursor:pointer;border-bottom:1px dashed #c6fb6377;padding-bottom:1px}
+.upload .browse:hover{color:#dcffa0}
+.swap-row{display:flex;gap:8px;margin-top:14px;justify-content:center;flex-wrap:wrap}
+.swapbtn{display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:650;color:#0d1206;padding:9px 15px;border-radius:11px;background:linear-gradient(135deg,var(--accent),var(--accent2));box-shadow:0 10px 26px -12px var(--accent);transition:.18s}
+.swapbtn:hover{transform:translateY(-2px);filter:brightness(1.07)}
+.swapbtn.ghost{background:none;color:var(--muted);border:1px solid var(--line);box-shadow:none}
+.swapbtn.ghost:hover{color:var(--danger);border-color:#5c2f3a;background:#20141a}
+.tiny{font-size:11.5px!important;margin-top:20px!important;color:var(--dim)!important;letter-spacing:.3px}
+
+/* ---------- stem chooser ---------- */
+.stems{display:grid;gap:9px}
+.stem{display:flex;align-items:center;gap:12px;background:var(--panel2);padding:12px;border:1px solid transparent;user-select:none;
+ border-radius:14px;transition:.18s;cursor:pointer}
+.stem:hover{background:#1a1f2a;transform:translateX(2px)}
+.stem:has(input:checked){border-color:#4a6238;background:linear-gradient(100deg,#1d2a1b,#171d22)}
+.stem input{accent-color:var(--accent);width:16px;height:16px;cursor:pointer;flex:none}
+.stem-icon{width:34px;height:34px;border-radius:11px;display:grid;place-items:center;font-weight:800;font-size:12px;flex:none;
+ border:1px solid #ffffff12}
+.v{background:linear-gradient(140deg,#3a2b42,#2a2030);color:#e9b6ff}
+.d{background:linear-gradient(140deg,#3a3323,#2b2619);color:#ffdf8e}
+.b{background:linear-gradient(140deg,#1f3a43,#182b31);color:#93e9ff}
+.o{background:linear-gradient(140deg,#2b3626,#20281d);color:#c6fb63}
+.stem label{flex:1;font-weight:650;cursor:pointer}
+.stem-icon{cursor:pointer}
+.stem small{display:block;color:var(--muted);font-size:11px;font-weight:450;margin-top:2px}
+
+.qual{margin-top:18px;padding-top:16px;border-top:1px solid var(--line)}
+.qual-head{font-size:9.5px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:var(--dim);margin-bottom:9px}
+.qopt{display:flex;align-items:center;gap:11px;padding:11px;border-radius:13px;border:1px solid var(--line);background:var(--panel2);cursor:pointer;margin-bottom:7px;transition:.16s}
+.qopt:hover{border-color:var(--line2)}
+.qopt.on{border-color:#4a6238;background:linear-gradient(100deg,#1d2a1b,#171d22)}
+.qopt input{display:none}
+.qi{width:30px;height:30px;flex:none;border-radius:9px;display:grid;place-items:center;font-size:13px;background:#242b35;color:var(--muted)}
+.qopt.on .qi{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#0d1206}
+.qt b{display:block;font-size:12.5px}
+.qt small{display:block;color:var(--muted);font-size:10.5px;margin-top:1px}
+.qnote{font-size:10.5px;color:var(--dim);line-height:1.5;margin-top:4px;min-height:14px}
+.qnote.warn{color:#ffcf8e}
+.action{margin-top:14px;width:100%;padding:15px;border-radius:14px;font-weight:800;letter-spacing:-.2px;color:#0d1206;
+ background:linear-gradient(135deg,var(--accent),#8ee88a 55%,var(--accent2));position:relative;overflow:hidden;
+ box-shadow:0 14px 34px -14px var(--accent);transition:.2s}
+.action:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 20px 42px -14px var(--accent);filter:brightness(1.06)}
+.action:active:not(:disabled){transform:translateY(0)}
+.action:disabled{opacity:.35;cursor:not-allowed;box-shadow:none;filter:grayscale(.5)}
+
+.pill{color:var(--accent2);font-size:11px;font-weight:650;background:#132b28;border:1px solid #1d443e;padding:6px 11px;
+ border-radius:99px;text-decoration:none;transition:.15s;white-space:nowrap}
+.pill:hover{background:#193b36;color:#8ff5e0;transform:translateY(-1px)}
+
+/* ---------- stem players ---------- */
+.stem-player{background:var(--panel2);padding:14px;border-radius:15px;border:1px solid var(--line);transition:.18s}
+.stem-player:hover{border-color:var(--line2);background:#171c26}
+.stem-player .sp-head{display:flex;align-items:center;gap:12px;margin-bottom:11px}
+.stem-player .sp-head b{flex:1;text-transform:capitalize;font-size:13.5px;letter-spacing:-.2px}
+.stem-player audio{width:100%;height:38px;border-radius:10px;filter:invert(.92) hue-rotate(180deg) contrast(.95)}
+.dl{color:var(--accent2);font-size:11px;font-weight:650;background:#132b28;border:1px solid #1d443e;padding:6px 11px;
+ border-radius:99px;text-decoration:none;transition:.15s}
+.dl:hover{background:#193b36;transform:translateY(-1px)}
+
+/* ---------- master editor ---------- */
+.opt{font-size:9.5px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:var(--accent3);
+ border:1px solid #40356b;background:#1b1630;padding:3px 8px;border-radius:99px;margin-left:2px}
+.ed-hint{color:var(--muted);font-size:13px;margin:0;display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.transport{display:flex;align-items:center;gap:15px;padding:15px;margin-bottom:15px;border-radius:16px;
+ border:1px solid var(--line);background:linear-gradient(120deg,#171c26,#12161e)}
+.tbtn{width:42px;height:42px;border-radius:13px;background:#242b35;display:grid;place-items:center;font-size:13px;flex:none;transition:.18s}
+.tbtn:hover{background:#2e3742;transform:translateY(-1px)}
+.tbtn.play{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#0d1206;box-shadow:0 8px 22px -8px var(--accent)}
+.tbtn.play:hover{filter:brightness(1.07)}
+.seekwrap{flex:1;min-width:120px}.seekwrap input{width:100%}
+.times{display:flex;justify-content:space-between;color:var(--muted);font-size:11px;font-variant-numeric:tabular-nums}
+.loop{color:var(--muted);font-size:12px;display:flex;align-items:center;gap:7px;white-space:nowrap;cursor:pointer}
+.loop input{accent-color:var(--accent);cursor:pointer}
+.ed-tracks{display:grid;gap:9px}
+.trk{display:grid;grid-template-columns:34px 76px 1fr 1fr 66px;gap:13px;align-items:center;padding:12px;border-radius:14px;
+ border:1px solid var(--line);background:var(--panel2);transition:.18s}
+.trk:hover{border-color:var(--line2)}
+.trk b{text-transform:capitalize;font-size:13px}
+.trk .knob{display:flex;flex-direction:column;gap:1px}
+.trk .knob span{font-size:9.5px;color:var(--dim);letter-spacing:1px;font-weight:700;display:flex;justify-content:space-between}
+.trk .knob i{font-style:normal;color:var(--muted);font-variant-numeric:tabular-nums}
+.trk input[type=range]{width:100%}
+.trk .btns{display:flex;gap:6px}
+.msbtn{width:28px;height:28px;border-radius:9px;background:#262d38;font-size:11px;font-weight:800;color:var(--dim);transition:.15s}
+.msbtn:hover{background:#313a47;color:var(--text)}
+.msbtn.on{background:var(--danger);color:#2b0a12;box-shadow:0 0 16px -4px var(--danger)}
+.msbtn.solo.on{background:var(--accent2);color:#04211c;box-shadow:0 0 16px -4px var(--accent2)}
+.trk.muted{opacity:.42;filter:saturate(.4)}
+.master-row{display:flex;align-items:center;gap:18px;margin-top:18px;flex-wrap:wrap;padding-top:18px;border-top:1px solid var(--line)}
+.mgain{display:flex;align-items:center;gap:11px;flex:1;min-width:230px;color:var(--muted);font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase}
+.mgain input{flex:1}
+.mgain b{color:var(--text);font-size:12px;width:44px;text-align:right;font-variant-numeric:tabular-nums;letter-spacing:0}
+.ed-export{margin-top:0!important;width:auto!important;padding:13px 22px}
+.ed-status{color:var(--dim);font-size:11.5px;margin-top:13px;min-height:16px}
+
+/* ---------- modal ---------- */
+.modal{position:fixed;inset:0;background:#05070ac9;backdrop-filter:blur(8px);display:none;place-items:center;padding:20px;z-index:50}
+.modal.show{display:grid;animation:rise .28s ease both}
+.modalbox{width:min(500px,100%);border-radius:24px;padding:30px;border:1px solid var(--line2);
+ background:linear-gradient(160deg,#171c26,#0f131b);box-shadow:0 40px 100px -30px #000,0 0 0 1px #ffffff0a}
+.modalbox h2{margin:0 0 9px;font-size:22px;letter-spacing:-.8px}
+.modalbox p{color:var(--muted);line-height:1.65;margin:0}
+.progress{height:10px;background:#232935;border-radius:99px;overflow:hidden;margin:26px 0 11px;position:relative}
+.bar{height:100%;width:0;border-radius:99px;transition:width .35s ease;
+ background:linear-gradient(90deg,var(--accent),var(--accent2),var(--accent3),var(--accent));background-size:200% auto;
+ animation:shimmer 2.2s linear infinite;box-shadow:0 0 16px -2px var(--accent)}
+.status{display:flex;justify-content:space-between;color:var(--muted);font-size:12px}
+.status b{color:var(--accent);font-variant-numeric:tabular-nums}
+.close{background:#252c37;padding:11px 18px;border-radius:12px;margin-top:18px;font-weight:650;transition:.15s}
+.close:hover{background:#313a47;transform:translateY(-1px)}
+
+@media(max-width:900px){
+ .side{width:70px;padding:22px 9px;gap:24px}
+ .brand span,.nav button span,.side-foot{display:none}
+ .brand{padding:4px 8px;justify-content:center}
+ .nav button{justify-content:center;padding:12px 0}
+ .main{padding:28px 20px 70px}
+ .grid{grid-template-columns:1fr}
+ .top{flex-direction:column;align-items:flex-start;margin-bottom:26px}
+ .top h1{font-size:30px}
+ .trk{grid-template-columns:34px 1fr;gap:10px}
+ .trk .btns{grid-column:2}
+}
+</style></head><body><div class="app"><aside class="side"><div class="brand"><div class="logo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M4 8.5v7M8.5 5v14M13 9.5v5M17.5 4.5v15M21.5 10v4"/></svg></div><span>XVVIIX</span></div><nav class="nav"><button class="active"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M4 4h16v16H4zM8 8v8m4-5v5m4-9v9"/></svg><span>New split</span></button><button><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M12 3v12m0 0 4-4m-4 4-4-4M5 21h14"/></svg><span>Exports</span></button><button><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M5 20V10m7 10V4m7 16v-6M3 10h4M10 4h4M17 14h4"/></svg><span>Master editor</span></button></nav><div class="side-foot">Runs 100% in your browser<a class="owner" href="https://github.com/zilolaegamberganova" target="_blank" rel="noopener noreferrer" title="Zilola Egamberganova"><span class="owner-dot">ZE</span><span><b>Zilola Egamberganova</b><i>Owner</i></span><svg class="owner-gh" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.4 7.4 0 0 1 2-.27c.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg></a>Engine v2.0 - Offline</div></aside><main class="main"><div class="engine-bar" id="engineBar" hidden><div class="eng-ico" id="engIco">◍</div><div class="eng-txt"><b id="engTitle">Starting engine...</b><span id="engMsg">Separation runs entirely inside your browser.</span></div><div class="eng-actions"><button class="eng-btn" id="engConnect">Dismiss</button><button class="eng-btn ghost" id="engHelp">How it works</button></div></div><header class="top"><div><div class="eyebrow">Audio workspace</div><h1>Split a song into stems.</h1><p>Drop a track in, get clean instrument layers out - no upload, no install.</p></div><div style="display:flex;align-items:center;gap:14px"><div class="eqbars" aria-hidden="true"><i style="animation-delay:0s"></i><i style="animation-delay:0.18s"></i><i style="animation-delay:0.36s"></i><i style="animation-delay:0.12s"></i><i style="animation-delay:0.42s"></i><i style="animation-delay:0.24s"></i><i style="animation-delay:0.06s"></i></div><div class="badge" id="netPill" hidden>Offline</div><div class="badge">Ready to split</div></div></header><div class="grid"><section><div class="card upload" id="drop"><div class="upload-icon"><svg width="25" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="1.8" d="M12 16V4m0 0L8 8m4-4 4 4M5 13v5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5"/></svg></div><h2 id="uploadTitle">Drop your song here</h2><p id="uploadSub">or <label class="browse" for="file">browse files</label></p><input id="file" type="file" accept="audio/*" hidden><p class="tiny">WAV, MP3, FLAC, M4A, OGG - up to ~12 min</p><div id="preview" style="display:none;width:100%;margin-top:24px"><div style="display:flex;align-items:center;gap:10px;margin-bottom:9px;text-align:left"><span style="color:var(--accent);font-weight:700;font-size:12px">AUDIO PREVIEW</span><span id="duration" style="color:var(--muted);font-size:12px"></span></div><audio id="player" controls style="width:100%;height:40px"></audio><div class="swap-row"><button class="swapbtn" id="swapBtn"><svg width="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" stroke-linecap="round" d="M4 9h13l-3-3m9 9H10l3 3"/></svg>Replace song</button><button class="swapbtn ghost" id="removeBtn"><svg width="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" stroke-linecap="round" d="M6 6l12 12M18 6 6 18"/></svg>Remove</button></div></div></div><div class="card" id="stemsCard" style="display:none;margin-top:20px"><div class="section-title"><h3>Separated stems</h3><button class="reset" id="downloadAll">Download all</button></div><div id="stemPlayers" class="stems"></div></div><div class="card" id="editorCard" style="display:none;margin-top:20px"><div class="section-title"><h3>Master editor <span class="opt">optional</span></h3><button class="reset" id="edReset" title="Reset all faders and return the song to the start">Reset all</button></div><p class="ed-hint" id="edHint">Load a completed split to mix its stems together.</p><div id="edBody" style="display:none"><div class="transport"><button class="tbtn play" id="edPlay">▶</button><button class="tbtn" id="edStop">■</button><div class="seekwrap"><input type="range" id="edSeek" min="0" max="1000" value="0" step="1"><div class="times"><span id="edTime">0:00</span><span id="edDur">0:00</span></div></div><label class="loop"><input type="checkbox" id="edLoop"> Loop</label></div><div id="edTracks" class="ed-tracks"></div><div class="master-row"><div class="mgain"><span>Master</span><input type="range" id="edMaster" min="0" max="150" value="100"><b id="edMasterVal">100%</b></div><button class="action ed-export" id="edExport">Export mix as WAV</button></div><div class="ed-status" id="edStatus"></div></div></div></section><section class="card"><div class="section-title"><h3>Choose stems</h3><button class="reset" id="all">Select all</button></div><div class="stems"><div class="stem"><input checked type="checkbox" id="vocals"><div class="stem-icon v">V</div><label for="vocals">Vocals<small>Lead & backing vocals</small></label></div><div class="stem"><input checked type="checkbox" id="drums"><div class="stem-icon d">D</div><label for="drums">Drums<small>Kit & percussion</small></label></div><div class="stem"><input checked type="checkbox" id="bass"><div class="stem-icon b">B</div><label for="bass">Bass<small>Low frequencies</small></label></div><div class="stem"><input checked type="checkbox" id="other"><div class="stem-icon o">O</div><label for="other">Other<small>Guitar, keys & more</small></label></div></div><div class="qual"><div class="qual-head">Quality</div><label class="qopt on" data-q="fast"><input type="radio" name="qual" value="fast" checked><span class="qi">⚡</span><span class="qt"><b>Fast</b><small>Instant - offline - in your browser</small></span></label><label class="qopt" data-q="best"><input type="radio" name="qual" value="best"><span class="qi">✦</span><span class="qt"><b>Best</b><small>Real Demucs AI - runs on your computer</small></span></label><div class="qnote" id="qNote"></div></div><button class="action" id="split" disabled>Choose an audio file first</button></section></div></main></div><div class="modal" id="setupModal"><div class="modalbox setup"><h2>How XVVIIX works</h2><p>Everything happens inside this browser tab. Your song is never uploaded, and no server is involved at any point.</p><ol class="steps"><li><b>Decode</b><small>Your file is decoded to raw audio with the Web Audio API.</small></li><li><b>Analyse</b><small>A short-time Fourier transform splits the track into a time-frequency spectrum.</small></li><li><b>Separate</b><small>Harmonic/percussive median filtering isolates sustained tones from transients, while stereo centre extraction pulls out the vocal. Frequency weighting then splits bass from the rest.</small></li><li><b>Rebuild</b><small>Each stem is resynthesised and encoded to WAV, entirely on your device.</small></li></ol><p class="disclaim">This is classic signal processing rather than an AI model, so it stays fast and fully offline. Results are good for remixing, practice and karaoke, but less surgical than a heavyweight server-side model.</p><div class="setup-foot"><div class="setup-btns"><button class="close" id="setupClose">Got it</button></div></div></div></div>
+<div class="modal" id="installModal"><div class="modalbox setup"><h2>Unlock Best quality</h2><p><b>Best</b> quality runs the real Demucs AI model. It needs a small one-time setup on <b>your own computer</b> - after that it is unlimited, private and works offline. Your audio is never uploaded anywhere.</p><div class="inst-steps"><div class="ist" id="ist1"><span class="istn">1</span><div><b>Download the installer</b><small>One file. The engine is built into it - nothing else to download.</small><div class="ist-btns"><a class="eng-btn" id="dlWin" href="engine/install-xvviix.bat" download>⊞ Windows</a><a class="eng-btn" id="dlMac" href="engine/install-xvviix.sh" download>⌘ macOS / Linux</a></div></div></div><div class="ist" id="ist2"><span class="istn">2</span><div><b>Run it</b><small id="runHint">Put it in its own folder, then double-click <code>install-xvviix.bat</code>. A black window opens and does the rest.</small></div></div><div class="ist" id="ist3"><span class="istn">3</span><div><b>Wait for the install</b><small>First run downloads the AI engine: about <b>250 MB</b> on a normal computer, or <b>2.5 GB</b> if you have an NVIDIA graphics card (the CUDA libraries are large, but make it ~10x faster). Later runs start instantly.</small></div></div><div class="ist" id="ist4"><span class="istn">4</span><div><b>Come back here</b><small>When the window says <b>READY</b>, this page detects it automatically and Best quality unlocks.</small><div class="ist-btns"><button class="eng-btn ghost" id="instCheck">Check connection</button><span class="inst-stat" id="instStat">Waiting...</span></div><div class="copybox" id="manualBox" hidden></div><div></div></div></div></div><p class="disclaim">Everything installs inside the downloaded folder - nothing is written elsewhere on your system, and no admin rights are needed. To uninstall, just delete the folder. Requires <a href="https://www.python.org/downloads/" target="_blank" rel="noopener">Python</a>; the installer tells you if it is missing.</p><div class="setup-foot"><div class="setup-btns"><button class="close" id="instClose">Close</button></div></div></div></div>
+<div class="modal" id="modal"><div class="modalbox"><h2 id="modalTitle">Separating your song</h2><p id="modalText">XVVIIX is analyzing the waveform and isolating each layer.</p><div class="progress"><div class="bar" id="bar"></div></div><div class="status"><span id="status">Preparing audio...</span><b id="percent">0%</b></div><button class="close" id="close" style="display:none">Done</button></div></div>
+<!--INSTALLER-PAYLOAD--><script>window.XVVIIX_INSTALLERS={"bat":"QGVjaG8gb2ZmDQpzZXRsb2NhbCBlbmFibGVkZWxheWVkZXhwYW5zaW9uDQp0aXRsZSBYVlZJSVggLSBMb2NhbCBFbmdpbmUgU2V0dXANCmNkIC9kICIlfmRwMCINCg0KZWNoby4NCmVjaG8gID09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PQ0KZWNobyAgICAgICAgICAgICAgICBYVlZJSVggLSBMb2NhbCBFbmdpbmUgU2V0dXANCmVjaG8gID09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PQ0KZWNoby4NCmVjaG8gICBUaGlzIHdpbGwgc2V0IHVwIHRoZSBEZW11Y3MgQUkgZW5naW5lIG9uIHRoaXMgY29tcHV0ZXIuDQplY2hvLg0KZWNobyAgICAgWzFdIENoZWNrIHRoYXQgUHl0aG9uIGlzIGluc3RhbGxlZA0KZWNobyAgICAgWzJdIENyZWF0ZSBhbiBpc29sYXRlZCBlbnZpcm9ubWVudCBpbiB0aGlzIGZvbGRlcg0KZWNobyAgICAgWzNdIERvd25sb2FkIHRoZSBBSSBlbmdpbmUNCmVjaG8gICAgIFs0XSBTdGFydCB0aGUgZW5naW5lDQplY2hvLg0KZWNobyAgIERvd25sb2FkIHNpemUgZGVwZW5kcyBvbiB5b3VyIGhhcmR3YXJlOg0KZWNobyAgICAgLSBObyBOVklESUEgZ3JhcGhpY3MgY2FyZCA6IGFib3V0IDI1MCBNQg0KZWNobyAgICAgLSBXaXRoIE5WSURJQSBncmFwaGljcyBjYXJkIDogYWJvdXQgMi41IEdCIChDVURBIGxpYnJhcmllcykNCmVjaG8uDQplY2hvICAgRXZlcnl0aGluZyBzdGF5cyBpbnNpZGUgdGhpcyBmb2xkZXIuDQplY2hvICAgVG8gdW5pbnN0YWxsLCBzaW1wbHkgZGVsZXRlIHRoaXMgZm9sZGVyLg0KZWNoby4NCmVjaG8gIC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQ0KcGF1c2UNCmVjaG8uDQoNCmVjaG8gIFsxLzRdIENoZWNraW5nIFB5dGhvbi4uLg0Kd2hlcmUgcHl0aG9uID5udWwgMj4mMQ0KaWYgZXJyb3JsZXZlbCAxIGdvdG8gbm9weXRob24NCnB5dGhvbiAtYyAiaW1wb3J0IHN5czsgc3lzLmV4aXQoMCBpZiBzeXMudmVyc2lvbl9pbmZvPj0oMyw5KSBlbHNlIDEpIiA+bnVsIDI+JjENCmlmIGVycm9ybGV2ZWwgMSBnb3RvIGJhZHZlcnNpb24NCmZvciAvZiAidG9rZW5zPTIiICUldiBpbiAoJ3B5dGhvbiAtLXZlcnNpb24gMl4+XiYxJykgZG8gc2V0IFBZVkVSPSUldg0KZWNobyAgICAgICAgT0sgLSBQeXRob24gIVBZVkVSIQ0KZWNoby4NCg0KZWNobyAgWzIvNF0gQ3JlYXRpbmcgaXNvbGF0ZWQgZW52aXJvbm1lbnQuLi4NCmlmIGV4aXN0ICIudmVudlxTY3JpcHRzXHB5dGhvbi5leGUiICgNCiAgICBlY2hvICAgICAgICBPSyAtIGFscmVhZHkgZXhpc3RzDQopIGVsc2UgKA0KICAgIHB5dGhvbiAtbSB2ZW52IC52ZW52DQogICAgaWYgZXJyb3JsZXZlbCAxICgNCiAgICAgICAgZWNobyAgICAgICAgRkFJTEVEIC0gY291bGQgbm90IGNyZWF0ZSB0aGUgZW52aXJvbm1lbnQNCiAgICAgICAgcGF1c2UNCiAgICAgICAgZXhpdCAvYiAxDQogICAgKQ0KICAgIGVjaG8gICAgICAgIE9LIC0gY3JlYXRlZA0KKQ0Kc2V0ICJQWT0udmVudlxTY3JpcHRzXHB5dGhvbi5leGUiDQplY2hvLg0KDQplY2hvICBbMy80XSBJbnN0YWxsaW5nIHRoZSBBSSBlbmdpbmUuLi4NCmlmIGV4aXN0ICIudmVudlwuaW5zdGFsbGVkIiAoDQogICAgZWNobyAgICAgICAgT0sgLSBhbHJlYWR5IGluc3RhbGxlZA0KICAgIGdvdG8gd3JpdGVlbmdpbmUNCikNCg0KZWNobyAgICAgICAgRGV0ZWN0aW5nIGdyYXBoaWNzIGNhcmQuLi4NCnNldCAiSEFTTlY9MCINCndoZXJlIG52aWRpYS1zbWkgPm51bCAyPiYxICYmIHNldCAiSEFTTlY9MSINCmlmICIhSEFTTlYhIj09IjEiICgNCiAgICBlY2hvICAgICAgICBOVklESUEgR1BVIGRldGVjdGVkIC0gaW5zdGFsbGluZyBDVURBIGJ1aWxkIChhYm91dCAyLjUgR0JeKQ0KICAgIGVjaG8gICAgICAgIFRoaXMgaXMgdGhlIHNsb3cgcGFydC4gUGxlYXNlIHdhaXQuDQogICAgIiVQWSUiIC1tIHBpcCBpbnN0YWxsIC0tcXVpZXQgLS11cGdyYWRlIHBpcA0KICAgICIlUFklIiAtbSBwaXAgaW5zdGFsbCB0b3JjaCB0b3JjaGF1ZGlvIC0taW5kZXgtdXJsIGh0dHBzOi8vZG93bmxvYWQucHl0b3JjaC5vcmcvd2hsL2N1MTIxDQogICAgaWYgZXJyb3JsZXZlbCAxICgNCiAgICAgICAgZWNobyAgICAgICAgQ1VEQSBidWlsZCBmYWlsZWQgLSBmYWxsaW5nIGJhY2sgdG8gdGhlIHNtYWxsZXIgQ1BVIGJ1aWxkDQogICAgICAgICIlUFklIiAtbSBwaXAgaW5zdGFsbCB0b3JjaCB0b3JjaGF1ZGlvIC0taW5kZXgtdXJsIGh0dHBzOi8vZG93bmxvYWQucHl0b3JjaC5vcmcvd2hsL2NwdQ0KICAgICkNCikgZWxzZSAoDQogICAgZWNobyAgICAgICAgTm8gTlZJRElBIEdQVSAtIGluc3RhbGxpbmcgdGhlIHNtYWxsIENQVSBidWlsZCAoYWJvdXQgMjUwIE1CXikNCiAgICAiJVBZJSIgLW0gcGlwIGluc3RhbGwgLS1xdWlldCAtLXVwZ3JhZGUgcGlwDQogICAgIiVQWSUiIC1tIHBpcCBpbnN0YWxsIHRvcmNoIHRvcmNoYXVkaW8gLS1pbmRleC11cmwgaHR0cHM6Ly9kb3dubG9hZC5weXRvcmNoLm9yZy93aGwvY3B1DQopDQppZiBlcnJvcmxldmVsIDEgKA0KICAgIGVjaG8gICAgICAgIEZBSUxFRCAtIGNoZWNrIHlvdXIgaW50ZXJuZXQgY29ubmVjdGlvbiBhbmQgcnVuIHRoaXMgZmlsZSBhZ2Fpbg0KICAgIHBhdXNlDQogICAgZXhpdCAvYiAxDQopDQoNCiIlUFklIiAtbSBwaXAgaW5zdGFsbCBkZW11Y3Mgc291bmRmaWxlDQppZiBlcnJvcmxldmVsIDEgKA0KICAgIGVjaG8gICAgICAgIEZBSUxFRCAtIGNvdWxkIG5vdCBpbnN0YWxsIERlbXVjcw0KICAgIHBhdXNlDQogICAgZXhpdCAvYiAxDQopDQplY2hvIGRvbmU+Ii52ZW52XC5pbnN0YWxsZWQiDQplY2hvICAgICAgICBPSyAtIGluc3RhbGxlZA0KZWNoby4NCg0KOndyaXRlZW5naW5lDQpzZXQgIkI2ND0lVEVNUCVceHZ2aWl4X2I2NF8lUkFORE9NJS50eHQiDQppZiBleGlzdCAiJUI2NCUiIGRlbCAiJUI2NCUiDQplY2hvIElpSWlDbGhXVmtsSldDQXRJR3h2WTJGc0lFZFFWUzlEVUZVZ1pXNW5hVzVsTGdvS1VuVnVjeUJFWlcxMVkzTWdiMjRnZEdobElIVnpaWEluY3lCdmQyNGdiV0ZqYUdsdVpTQmhibVFnWlhod2IzTmxjeUJoSUhScD4+IiVCNjQlIg0KZWNobyBibmtnU0ZSVVVDQkJVRWtnZEdoaGRDQjBhR1VLZDJWaWMybDBaU0FvYUc5emRHVmtJRzl1SUVkcGRFaDFZaUJRWVdkbGN5a2dZMkZ1SUdOaGJHd3VJRUYxWkdsdklHNWxkbVZ5SUd4bFlYWmxjeUIwYUdVZ2JXRmo+PiIlQjY0JSINCmVjaG8gYUdsdVpTNEtDbE4wWVhKMFpXUWdZWFYwYjIxaGRHbGpZV3hzZVNCaWVTQnBibk4wWVd4c0xYaDJkbWxwZUM1aVlYUWdMeUJwYm5OMFlXeHNMWGgyZG1scGVDNXphQzRLSWlJaUNncHBiWEJ2Y25RZ2FuTnZiZ3BwPj4iJUI2NCUiDQplY2hvIGJYQnZjblFnYjNNS2FXMXdiM0owSUhKbENtbHRjRzl5ZENCemFIVjBhV3dLYVcxd2IzSjBJSE4xWW5CeWIyTmxjM01LYVcxd2IzSjBJSE41Y3dwcGJYQnZjblFnZEdoeVpXRmthVzVuQ21sdGNHOXlkQ0IxZFdsaz4+IiVCNjQlIg0KZWNobyBDbVp5YjIwZ1pXMWhhV3d1Y0dGeWMyVnlJR2x0Y0c5eWRDQkNlWFJsYzFCaGNuTmxjZ3BtY205dElHVnRZV2xzTG5CdmJHbGplU0JwYlhCdmNuUWdaR1ZtWVhWc2RBcG1jbTl0SUdoMGRIQXVjMlZ5ZG1WeUlHbHQ+PiIlQjY0JSINCmVjaG8gY0c5eWRDQlVhSEpsWVdScGJtZElWRlJRVTJWeWRtVnlMQ0JDWVhObFNGUlVVRkpsY1hWbGMzUklZVzVrYkdWeUNtWnliMjBnY0dGMGFHeHBZaUJwYlhCdmNuUWdVR0YwYUFwbWNtOXRJSFZ5Ykd4cFlpNXdZWEp6Pj4iJUI2NCUiDQplY2hvIFpTQnBiWEJ2Y25RZ2RXNXhkVzkwWlFvS1VrOVBWQ0E5SUZCaGRHZ29YMTltYVd4bFgxOHBMbkpsYzI5c2RtVW9LUzV3WVhKbGJuUUtWVkJNVDBGRVV5QTlJRkpQVDFRZ0x5QWlkWEJzYjJGa2N5SUtUMVZVVUZWVT4+IiVCNjQlIg0KZWNobyBVeUE5SUZKUFQxUWdMeUFpYjNWMGNIVjBjeUlLVlZCTVQwRkVVeTV0YTJScGNpaGxlR2x6ZEY5dmF6MVVjblZsS1FwUFZWUlFWVlJUTG0xclpHbHlLR1Y0YVhOMFgyOXJQVlJ5ZFdVcENncElUMU5VSUQwZ2IzTXU+PiIlQjY0JSINCmVjaG8gWlc1MmFYSnZiaTVuWlhRb0lsaFdWa2xKV0Y5SVQxTlVJaXdnSWpFeU55NHdMakF1TVNJcENsQlBVbFFnUFNCcGJuUW9iM011Wlc1MmFYSnZiaTVuWlhRb0lsaFdWa2xKV0Y5UVQxSlVJaXdnSWpnM05qVWlLU2tLPj4iJUI2NCUiDQplY2hvIFRVRllYMVZRVEU5QlJDQTlJRFV3TUNBcUlERXdNalFnS2lBeE1ESTBDa0ZNVEU5WFJVUmZSVmhVSUQwZ2V5SXVkMkYySWl3Z0lpNXRjRE1pTENBaUxtWnNZV01pTENBaUxtMDBZU0lzSUNJdVlXRmpJaXdnSWk1dj4+IiVCNjQlIg0KZWNobyBaMmNpTENBaUxtRnBabVlpTENBaUxtRnBaaUo5Q2xOVVJVMWZUa0ZOUlZNZ1BTQjdJblp2WTJGc2N5SXNJQ0prY25WdGN5SXNJQ0ppWVhOeklpd2dJbTkwYUdWeUluMEtVMEZHUlNBOUlISmxMbU52YlhCcGJHVW8+PiIlQjY0JSINCmVjaG8gY2lKZVcxeDNMbHd0WFNza0lpa0tVRkpQUjFKRlUxTmZVa1VnUFNCeVpTNWpiMjF3YVd4bEtISWlLRnhrZXpFc00zMHBKU0lwQ2dwcWIySnpJRDBnZTMwS0NncGtaV1lnWjNCMVgybHVabThvS1RvS0lDQWdJSFJ5Pj4iJUI2NCUiDQplY2hvIGVUb0tJQ0FnSUNBZ0lDQnBiWEJ2Y25RZ2RHOXlZMmdLQ2lBZ0lDQWdJQ0FnYVdZZ2RHOXlZMmd1WTNWa1lTNXBjMTloZG1GcGJHRmliR1VvS1RvS0lDQWdJQ0FnSUNBZ0lDQWdjbVYwZFhKdUlIc2laR1YyYVdObD4+IiVCNjQlIg0KZWNobyBJam9nSW1OMVpHRWlMQ0FpYm1GdFpTSTZJSFJ2Y21Ob0xtTjFaR0V1WjJWMFgyUmxkbWxqWlY5dVlXMWxLREFwZlFvZ0lDQWdaWGhqWlhCMElFVjRZMlZ3ZEdsdmJqb0tJQ0FnSUNBZ0lDQndZWE56Q2lBZ0lDQnk+PiIlQjY0JSINCmVjaG8gWlhSMWNtNGdleUprWlhacFkyVWlPaUFpWTNCMUlpd2dJbTVoYldVaU9pQWlRMUJWSW4wS0NncEVSVlpKUTBVZ1BTQm5jSFZmYVc1bWJ5Z3BDZ29LWTJ4aGMzTWdTR0Z1Wkd4bGNpaENZWE5sU0ZSVVVGSmxjWFZsPj4iJUI2NCUiDQplY2hvIGMzUklZVzVrYkdWeUtUb0tJQ0FnSUhObGNuWmxjbDkyWlhKemFXOXVJRDBnSWxoV1ZrbEpXQzh5TGpBaUNnb2dJQ0FnWkdWbUlHeHZaMTl0WlhOellXZGxLSE5sYkdZc0lHWnRkQ3dnS21GeVozTXBPZ29nSUNBZz4+IiVCNjQlIg0KZWNobyBJQ0FnSUNNZ2EyVmxjQ0IwYUdVZ1kyOXVjMjlzWlNCeVpXRmtZV0pzWlNCbWIzSWdibTl1TFhSbFkyaHVhV05oYkNCMWMyVnljd29nSUNBZ0lDQWdJR2xtSUNJdllYQnBMMmhsWVd4MGFDSWdibTkwSUdsdUlDaGg+PiIlQjY0JSINCmVjaG8gY21keld6QmRJR2xtSUdGeVozTWdaV3h6WlNBaUlpazZDaUFnSUNBZ0lDQWdJQ0FnSUhONWN5NXpkR1J2ZFhRdWQzSnBkR1VvSWlBZ0xTQWxjMXh1SWlBbElDaG1iWFFnSlNCaGNtZHpLU2tLQ2lBZ0lDQmtaV1lnPj4iJUI2NCUiDQplY2hvIFgyTnZjbk1vYzJWc1ppazZDaUFnSUNBZ0lDQWdiM0pwWjJsdUlEMGdjMlZzWmk1b1pXRmtaWEp6TG1kbGRDZ2lUM0pwWjJsdUlpa0tJQ0FnSUNBZ0lDQnBaaUJ2Y21sbmFXNDZDaUFnSUNBZ0lDQWdJQ0FnSUhObD4+IiVCNjQlIg0KZWNobyBiR1l1YzJWdVpGOW9aV0ZrWlhJb0lrRmpZMlZ6Y3kxRGIyNTBjbTlzTFVGc2JHOTNMVTl5YVdkcGJpSXNJRzl5YVdkcGJpa0tJQ0FnSUNBZ0lDQWdJQ0FnYzJWc1ppNXpaVzVrWDJobFlXUmxjaWdpVm1GeWVTSXM+PiIlQjY0JSINCmVjaG8gSUNKUGNtbG5hVzRpS1FvZ0lDQWdJQ0FnSUdWc2MyVTZDaUFnSUNBZ0lDQWdJQ0FnSUhObGJHWXVjMlZ1WkY5b1pXRmtaWElvSWtGalkyVnpjeTFEYjI1MGNtOXNMVUZzYkc5M0xVOXlhV2RwYmlJc0lDSXFJaWtLPj4iJUI2NCUiDQplY2hvIElDQWdJQ0FnSUNCelpXeG1Mbk5sYm1SZmFHVmhaR1Z5S0NKQlkyTmxjM010UTI5dWRISnZiQzFCYkd4dmR5MUlaV0ZrWlhKeklpd2dJa052Ym5SbGJuUXRWSGx3WlN3Z1VtRnVaMlVpS1FvZ0lDQWdJQ0FnSUhObD4+IiVCNjQlIg0KZWNobyBiR1l1YzJWdVpGOW9aV0ZrWlhJb0lrRmpZMlZ6Y3kxRGIyNTBjbTlzTFVGc2JHOTNMVTFsZEdodlpITWlMQ0FpUjBWVUxDQlFUMU5VTENCSVJVRkVMQ0JQVUZSSlQwNVRJaWtLSUNBZ0lDQWdJQ0J6Wld4bUxuTmw+PiIlQjY0JSINCmVjaG8gYm1SZmFHVmhaR1Z5S0NKQlkyTmxjM010UTI5dWRISnZiQzFGZUhCdmMyVXRTR1ZoWkdWeWN5SXNJQ0pEYjI1MFpXNTBMVXhsYm1kMGFDd2dRMjl1ZEdWdWRDMVNZVzVuWlN3Z1FXTmpaWEIwTFZKaGJtZGxjeUlwPj4iJUI2NCUiDQplY2hvIENpQWdJQ0FnSUNBZ2MyVnNaaTV6Wlc1a1gyaGxZV1JsY2lnaVFXTmpaWE56TFVOdmJuUnliMnd0VFdGNExVRm5aU0lzSUNJNE5qUXdNQ0lwQ2dvZ0lDQWdaR1ZtSUdWdVpGOW9aV0ZrWlhKektITmxiR1lwT2dvZz4+IiVCNjQlIg0KZWNobyBJQ0FnSUNBZ0lITmxiR1l1YzJWdVpGOW9aV0ZrWlhJb0lrTmhZMmhsTFVOdmJuUnliMndpTENBaWJtOHRjM1J2Y21VaUtRb2dJQ0FnSUNBZ0lITmxiR1l1WDJOdmNuTW9LUW9nSUNBZ0lDQWdJSE4xY0dWeUtDa3U+PiIlQjY0JSINCmVjaG8gWlc1a1gyaGxZV1JsY25Nb0tRb0tJQ0FnSUdSbFppQmtiMTlQVUZSSlQwNVRLSE5sYkdZcE9nb2dJQ0FnSUNBZ0lITmxiR1l1YzJWdVpGOXlaWE53YjI1elpTZ3lNRFFwQ2lBZ0lDQWdJQ0FnYzJWc1ppNXpaVzVrPj4iJUI2NCUiDQplY2hvIFgyaGxZV1JsY2lnaVEyOXVkR1Z1ZEMxTVpXNW5kR2dpTENBaU1DSXBDaUFnSUNBZ0lDQWdjMlZzWmk1bGJtUmZhR1ZoWkdWeWN5Z3BDZ29nSUNBZ1pHVm1JSE5sYm1SZmFuTnZiaWh6Wld4bUxDQmtZWFJoTENCaj4+IiVCNjQlIg0KZWNobyBiMlJsUFRJd01DazZDaUFnSUNBZ0lDQWdjbUYzSUQwZ2FuTnZiaTVrZFcxd2N5aGtZWFJoS1M1bGJtTnZaR1VvS1FvZ0lDQWdJQ0FnSUhObGJHWXVjMlZ1WkY5eVpYTndiMjV6WlNoamIyUmxLUW9nSUNBZ0lDQWc+PiIlQjY0JSINCmVjaG8gSUhObGJHWXVjMlZ1WkY5b1pXRmtaWElvSWtOdmJuUmxiblF0Vkhsd1pTSXNJQ0poY0hCc2FXTmhkR2x2Ymk5cWMyOXVJaWtLSUNBZ0lDQWdJQ0J6Wld4bUxuTmxibVJmYUdWaFpHVnlLQ0pEYjI1MFpXNTBMVXhsPj4iJUI2NCUiDQplY2hvIGJtZDBhQ0lzSUhOMGNpaHNaVzRvY21GM0tTa3BDaUFnSUNBZ0lDQWdjMlZzWmk1bGJtUmZhR1ZoWkdWeWN5Z3BDaUFnSUNBZ0lDQWdjMlZzWmk1M1ptbHNaUzUzY21sMFpTaHlZWGNwQ2dvZ0lDQWdJeUF0TFMwdD4+IiVCNjQlIg0KZWNobyBMUzB0TFMwdExTMHRMUzB0SUZCUFUxUWdMUzB0TFMwdExTMHRMUzB0TFMwdExRb2dJQ0FnWkdWbUlHUnZYMUJQVTFRb2MyVnNaaWs2Q2lBZ0lDQWdJQ0FnYVdZZ2MyVnNaaTV3WVhSb0lDRTlJQ0l2WVhCcEwzTnc+PiIlQjY0JSINCmVjaG8gYkdsMElqb0tJQ0FnSUNBZ0lDQWdJQ0FnYzJWc1ppNXpaVzVrWDJwemIyNG9leUpsY25KdmNpSTZJQ0pPYjNRZ1ptOTFibVFpZlN3Z05EQTBLUW9nSUNBZ0lDQWdJQ0FnSUNCeVpYUjFjbTRLSUNBZ0lDQWdJQ0IwPj4iJUI2NCUiDQplY2hvIGNuazZDaUFnSUNBZ0lDQWdJQ0FnSUd4bGJtZDBhQ0E5SUdsdWRDaHpaV3htTG1obFlXUmxjbk11WjJWMEtDSkRiMjUwWlc1MExVeGxibWQwYUNJc0lDSXdJaWtwQ2lBZ0lDQWdJQ0FnSUNBZ0lHbG1JR3hsYm1kMD4+IiVCNjQlIg0KZWNobyBhQ0E4UFNBd09nb2dJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ2NtRnBjMlVnVm1Gc2RXVkZjbkp2Y2lnaVJXMXdkSGtnY21WeGRXVnpkQ0lwQ2lBZ0lDQWdJQ0FnSUNBZ0lHbG1JR3hsYm1kMGFDQStJRTFCV0Y5VlVFeFA+PiIlQjY0JSINCmVjaG8gUVVRNkNpQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNCelpXeG1Mbk5sYm1SZmFuTnZiaWg3SW1WeWNtOXlJam9nSWtacGJHVWdiR0Z5WjJWeUlIUm9ZVzRnTlRBd0lFMUNJbjBzSURReE15a0tJQ0FnSUNBZ0lDQWdJQ0FnPj4iJUI2NCUiDQplY2hvIElDQWdJSEpsZEhWeWJnb2dJQ0FnSUNBZ0lDQWdJQ0JqZEhsd1pTQTlJSE5sYkdZdWFHVmhaR1Z5Y3k1blpYUW9Ja052Ym5SbGJuUXRWSGx3WlNJc0lDSWlLUW9nSUNBZ0lDQWdJQ0FnSUNCcFppQWliWFZzZEdsdz4+IiVCNjQlIg0KZWNobyBZWEowTDJadmNtMHRaR0YwWVNJZ2JtOTBJR2x1SUdOMGVYQmxPZ29nSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdjbUZwYzJVZ1ZtRnNkV1ZGY25KdmNpZ2lSWGh3WldOMFpXUWdiWFZzZEdsd1lYSjBMMlp2Y20wdFpHRjA+PiIlQjY0JSINCmVjaG8gWVNJcENnb2dJQ0FnSUNBZ0lDQWdJQ0JpYjJSNUlEMGdjMlZzWmk1eVptbHNaUzV5WldGa0tHeGxibWQwYUNrS0lDQWdJQ0FnSUNBZ0lDQWdiWE5uSUQwZ1FubDBaWE5RWVhKelpYSW9jRzlzYVdONVBXUmxabUYxPj4iJUI2NCUiDQplY2hvIGJIUXBMbkJoY25ObFlubDBaWE1vQ2lBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0JtSWtOdmJuUmxiblF0Vkhsd1pUb2dlMk4wZVhCbGZWeHlYRzVOU1UxRkxWWmxjbk5wYjI0NklERXVNRnh5WEc1Y2NseHVJaTVsYm1Odj4+IiVCNjQlIg0KZWNobyBaR1VvS1NBcklHSnZaSGtLSUNBZ0lDQWdJQ0FnSUNBZ0tRb0tJQ0FnSUNBZ0lDQWdJQ0FnWm1sc1pXNWhiV1VnUFNCbWFXeGxaR0YwWVNBOUlFNXZibVVLSUNBZ0lDQWdJQ0FnSUNBZ1ptbGxiR1J6SUQwZ2UzMEs+PiIlQjY0JSINCmVjaG8gSUNBZ0lDQWdJQ0FnSUNBZ1ptOXlJSEJoY25RZ2FXNGdiWE5uTG1sMFpYSmZjR0Z5ZEhNb0tUb0tJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lHNWhiV1VnUFNCd1lYSjBMbWRsZEY5d1lYSmhiU2dpYm1GdFpTSXNJR2hsPj4iJUI2NCUiDQplY2hvIFlXUmxjajBpWTI5dWRHVnVkQzFrYVhOd2IzTnBkR2x2YmlJcENpQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNCcFppQnVZVzFsSUQwOUlDSm1hV3hsSWpvS0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lDQm1hV3hsYm1GdD4+IiVCNjQlIg0KZWNobyBaU0E5SUhCaGNuUXVaMlYwWDJacGJHVnVZVzFsS0NrS0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lDQm1hV3hsWkdGMFlTQTlJSEJoY25RdVoyVjBYM0JoZVd4dllXUW9aR1ZqYjJSbFBWUnlkV1VwQ2lBZ0lDQWc+PiIlQjY0JSINCmVjaG8gSUNBZ0lDQWdJQ0FnSUNCbGJHbG1JRzVoYldVNkNpQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdabWxsYkdSelcyNWhiV1ZkSUQwZ2NHRnlkQzVuWlhSZlkyOXVkR1Z1ZENncENnb2dJQ0FnSUNBZ0lDQWdJQ0JwPj4iJUI2NCUiDQplY2hvIFppQnViM1FnWm1sc1pXNWhiV1VnYjNJZ2JtOTBJR1pwYkdWa1lYUmhPZ29nSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdjbUZwYzJVZ1ZtRnNkV1ZGY25KdmNpZ2lUbThnWVhWa2FXOGdabWxzWlNCeVpXTmxhWFpsWkNJcD4+IiVCNjQlIg0KZWNobyBDaUFnSUNBZ0lDQWdJQ0FnSUdWNGRDQTlJRkJoZEdnb1ptbHNaVzVoYldVcExuTjFabVpwZUM1c2IzZGxjaWdwSUc5eUlDSXVkMkYySWdvZ0lDQWdJQ0FnSUNBZ0lDQnBaaUJsZUhRZ2JtOTBJR2x1SUVGTVRFOVg+PiIlQjY0JSINCmVjaG8gUlVSZlJWaFVPZ29nSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdjbUZwYzJVZ1ZtRnNkV1ZGY25KdmNpaG1KMVZ1YzNWd2NHOXlkR1ZrSUdacGJHVWdkSGx3WlNBaWUyVjRkSDBpSnlrS0NpQWdJQ0FnSUNBZ0lDQWdJSFJ5Pj4iJUI2NCUiDQplY2hvIGVUb0tJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lITjBaVzF6SUQwZ2FuTnZiaTVzYjJGa2N5aG1hV1ZzWkhNdVoyVjBLQ0p6ZEdWdGN5SXNJQ0piWFNJcEtRb2dJQ0FnSUNBZ0lDQWdJQ0JsZUdObGNIUWdhbk52Ymk1Sz4+IiVCNjQlIg0KZWNobyBVMDlPUkdWamIyUmxSWEp5YjNJNkNpQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNCemRHVnRjeUE5SUZ0ZENpQWdJQ0FnSUNBZ0lDQWdJSE4wWlcxeklEMGdXM01nWm05eUlITWdhVzRnYzNSbGJYTWdhV1lnY3lCcGJpQlQ+PiIlQjY0JSINCmVjaG8gVkVWTlgwNUJUVVZUWFNCdmNpQnNhWE4wS0ZOVVJVMWZUa0ZOUlZNcENnb2dJQ0FnSUNBZ0lDQWdJQ0JxYjJJZ1BTQnpkSElvZFhWcFpDNTFkV2xrTkNncEtRb2dJQ0FnSUNBZ0lDQWdJQ0J6Y21NZ1BTQlZVRXhQPj4iJUI2NCUiDQplY2hvIFFVUlRJQzhnS0dwdllpQXJJR1Y0ZENrS0lDQWdJQ0FnSUNBZ0lDQWdjM0pqTG5keWFYUmxYMko1ZEdWektHWnBiR1ZrWVhSaEtRb2dJQ0FnSUNBZ0lDQWdJQ0JxYjJKelcycHZZbDBnUFNCN0luTjBZWFIxY3lJNj4+IiVCNjQlIg0KZWNobyBJQ0p4ZFdWMVpXUWlMQ0FpY0hKdlozSmxjM01pT2lBd0xDQWlibUZ0WlNJNklHWnBiR1Z1WVcxbGZRb2dJQ0FnSUNBZ0lDQWdJQ0IwYUhKbFlXUnBibWN1VkdoeVpXRmtLSFJoY21kbGREMXlkVzVmYzNCc2FYUXM+PiIlQjY0JSINCmVjaG8gSUdGeVozTTlLR3B2WWl3Z2MzSmpMQ0J6ZEdWdGN5a3NJR1JoWlcxdmJqMVVjblZsS1M1emRHRnlkQ2dwQ2lBZ0lDQWdJQ0FnSUNBZ0lITmxiR1l1YzJWdVpGOXFjMjl1S0hzaWFtOWlYMmxrSWpvZ2FtOWlmU2tLPj4iJUI2NCUiDQplY2hvIElDQWdJQ0FnSUNCbGVHTmxjSFFnUlhoalpYQjBhVzl1SUdGeklHVjRZem9LSUNBZ0lDQWdJQ0FnSUNBZ2MyVnNaaTV6Wlc1a1gycHpiMjRvZXlKbGNuSnZjaUk2SUhOMGNpaGxlR01wZlN3Z05EQXdLUW9LSUNBZz4+IiVCNjQlIg0KZWNobyBJQ01nTFMwdExTMHRMUzB0TFMwdExTMHRMU0JIUlZRZ0xTMHRMUzB0TFMwdExTMHRMUzB0TFFvZ0lDQWdaR1ZtSUdSdlgwaEZRVVFvYzJWc1ppazZDaUFnSUNBZ0lDQWdjMlZzWmk1a2IxOUhSVlFvS1FvS0lDQWc+PiIlQjY0JSINCmVjaG8gSUdSbFppQmtiMTlIUlZRb2MyVnNaaWs2Q2lBZ0lDQWdJQ0FnYVdZZ2MyVnNaaTV3WVhSb0lEMDlJQ0l2WVhCcEwyaGxZV3gwYUNJNkNpQWdJQ0FnSUNBZ0lDQWdJSE5sYkdZdWMyVnVaRjlxYzI5dUtIc0tJQ0FnPj4iJUI2NCUiDQplY2hvIElDQWdJQ0FnSUNBZ0lDQWdJQ0poY0hBaU9pQWlXRlpXU1VsWUlpd0tJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lDSjJaWEp6YVc5dUlqb2dJakl1TUNJc0NpQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBaVpXNW5hVzVsSWpvZz4+IiVCNjQlIg0KZWNobyBJbVJsYlhWamN5SXNDaUFnSUNBZ0lDQWdJQ0FnSUNBZ0lDQWlaR1YyYVdObElqb2dSRVZXU1VORld5SmtaWFpwWTJVaVhTd0tJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lDSmtaWFpwWTJWZmJtRnRaU0k2SUVSRlZrbEQ+PiIlQjY0JSINCmVjaG8gUlZzaWJtRnRaU0pkTEFvZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSW05cklqb2dWSEoxWlN3S0lDQWdJQ0FnSUNBZ0lDQWdmU2tLSUNBZ0lDQWdJQ0FnSUNBZ2NtVjBkWEp1Q2dvZ0lDQWdJQ0FnSUdsbUlITmxiR1l1Pj4iJUI2NCUiDQplY2hvIGNHRjBhQzV6ZEdGeWRITjNhWFJvS0NJdllYQnBMM04wWVhSMWN5OGlLVG9LSUNBZ0lDQWdJQ0FnSUNBZ2FtOWlJRDBnYzJWc1ppNXdZWFJvTG5KemNHeHBkQ2dpTHlJc0lERXBXeTB4WFFvZ0lDQWdJQ0FnSUNBZz4+IiVCNjQlIg0KZWNobyBJQ0J6Wld4bUxuTmxibVJmYW5OdmJpaHFiMkp6TG1kbGRDaHFiMklzSUhzaVpYSnliM0lpT2lBaVZXNXJibTkzYmlCcWIySWlmU2twQ2lBZ0lDQWdJQ0FnSUNBZ0lISmxkSFZ5YmdvS0lDQWdJQ0FnSUNCcFppQno+PiIlQjY0JSINCmVjaG8gWld4bUxuQmhkR2d1YzNSaGNuUnpkMmwwYUNnaUwyRndhUzlrYjNkdWJHOWhaQzhpS1RvS0lDQWdJQ0FnSUNBZ0lDQWdjMlZzWmk1ZlpHOTNibXh2WVdRb0tRb2dJQ0FnSUNBZ0lDQWdJQ0J5WlhSMWNtNEtDaUFnPj4iJUI2NCUiDQplY2hvIElDQWdJQ0FnYzJWc1ppNXpaVzVrWDJwemIyNG9leUpsY25KdmNpSTZJQ0pPYjNRZ1ptOTFibVFpZlN3Z05EQTBLUW9LSUNBZ0lHUmxaaUJmWkc5M2JteHZZV1FvYzJWc1ppazZDaUFnSUNBZ0lDQWdjR0YwYUN3Zz4+IiVCNjQlIg0KZWNobyBYeXdnY1hWbGNua2dQU0J6Wld4bUxuQmhkR2d1Y0dGeWRHbDBhVzl1S0NJL0lpa0tJQ0FnSUNBZ0lDQnBibXhwYm1VZ1BTQWlhVzVzYVc1bFBURWlJR2x1SUhGMVpYSjVDaUFnSUNBZ0lDQWdjR0Z5ZEhNZ1BTQnc+PiIlQjY0JSINCmVjaG8gWVhSb0xuTndiR2wwS0NJdklpa0tJQ0FnSUNBZ0lDQnBaaUJzWlc0b2NHRnlkSE1wSUNFOUlEYzZDaUFnSUNBZ0lDQWdJQ0FnSUhObGJHWXVjMlZ1WkY5cWMyOXVLSHNpWlhKeWIzSWlPaUFpU1c1MllXeHBaQ0J3Pj4iJUI2NCUiDQplY2hvIFlYUm9JbjBzSURRd01Da0tJQ0FnSUNBZ0lDQWdJQ0FnY21WMGRYSnVDaUFnSUNBZ0lDQWdYeXdnWHl3Z1h5d2dhbTlpTENCdGIyUmxiQ3dnYzI5dVp5d2dabWxzWlc1aGJXVWdQU0JiZFc1eGRXOTBaU2h3S1NCbT4+IiVCNjQlIg0KZWNobyBiM0lnY0NCcGJpQndZWEowYzEwS0lDQWdJQ0FnSUNCbWIzSWdZeUJwYmlBb2FtOWlMQ0J0YjJSbGJDd2djMjl1Wnl3Z1ptbHNaVzVoYldVcE9nb2dJQ0FnSUNBZ0lDQWdJQ0JwWmlCdWIzUWdVMEZHUlM1dFlYUmo+PiIlQjY0JSINCmVjaG8gYUNoaktTQnZjaUFpTGk0aUlHbHVJR002Q2lBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0J6Wld4bUxuTmxibVJmYW5OdmJpaDdJbVZ5Y205eUlqb2dJa2x1ZG1Gc2FXUWdjR0YwYUNKOUxDQTBNREFwQ2lBZ0lDQWdJQ0FnPj4iJUI2NCUiDQplY2hvIElDQWdJQ0FnSUNCeVpYUjFjbTRLQ2lBZ0lDQWdJQ0FnY205dmRDQTlJRTlWVkZCVlZGTXVjbVZ6YjJ4MlpTZ3BDaUFnSUNBZ0lDQWdkR0Z5WjJWMElEMGdLRTlWVkZCVlZGTWdMeUJxYjJJZ0x5QnRiMlJsYkNBdj4+IiVCNjQlIg0KZWNobyBJSE52Ym1jZ0x5Qm1hV3hsYm1GdFpTa3VjbVZ6YjJ4MlpTZ3BDaUFnSUNBZ0lDQWdkSEo1T2dvZ0lDQWdJQ0FnSUNBZ0lDQjBZWEpuWlhRdWNtVnNZWFJwZG1WZmRHOG9jbTl2ZENrS0lDQWdJQ0FnSUNCbGVHTmw+PiIlQjY0JSINCmVjaG8gY0hRZ1ZtRnNkV1ZGY25KdmNqb0tJQ0FnSUNBZ0lDQWdJQ0FnYzJWc1ppNXpaVzVrWDJwemIyNG9leUpsY25KdmNpSTZJQ0pKYm5aaGJHbGtJSEJoZEdnaWZTd2dOREF3S1FvZ0lDQWdJQ0FnSUNBZ0lDQnlaWFIxPj4iJUI2NCUiDQplY2hvIGNtNEtJQ0FnSUNBZ0lDQnBaaUJ1YjNRZ2RHRnlaMlYwTG1selgyWnBiR1VvS1RvS0lDQWdJQ0FnSUNBZ0lDQWdjMlZzWmk1elpXNWtYMnB6YjI0b2V5Smxjbkp2Y2lJNklDSk9iM1FnWm05MWJtUWlmU3dnTkRBMD4+IiVCNjQlIg0KZWNobyBLUW9nSUNBZ0lDQWdJQ0FnSUNCeVpYUjFjbTRLQ2lBZ0lDQWdJQ0FnYzJsNlpTQTlJSFJoY21kbGRDNXpkR0YwS0NrdWMzUmZjMmw2WlFvZ0lDQWdJQ0FnSUhOMFlYSjBMQ0JsYm1Rc0lITjBZWFIxY3lBOUlEQXM+PiIlQjY0JSINCmVjaG8gSUhOcGVtVWdMU0F4TENBeU1EQUtJQ0FnSUNBZ0lDQnlibWNnUFNCelpXeG1MbWhsWVdSbGNuTXVaMlYwS0NKU1lXNW5aU0lzSUNJaUtRb2dJQ0FnSUNBZ0lHMGdQU0J5WlM1dFlYUmphQ2h5SW1KNWRHVnpQU2hjPj4iJUI2NCUiDQplY2hvIFpDb3BMU2hjWkNvcEpDSXNJSEp1Wnk1emRISnBjQ2dwS1NCcFppQnlibWNnWld4elpTQk9iMjVsQ2lBZ0lDQWdJQ0FnYVdZZ2JTQmhibVFnYzJsNlpUb0tJQ0FnSUNBZ0lDQWdJQ0FnY3l3Z1pTQTlJRzB1WjNKdj4+IiVCNjQlIg0KZWNobyBkWEFvTVNrc0lHMHVaM0p2ZFhBb01pa0tJQ0FnSUNBZ0lDQWdJQ0FnYVdZZ2N6b0tJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lITjBZWEowSUQwZ2FXNTBLSE1wQ2lBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0JwWmlCbE9nb2c+PiIlQjY0JSINCmVjaG8gSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUdWdVpDQTlJRzFwYmlocGJuUW9aU2tzSUhOcGVtVWdMU0F4S1FvZ0lDQWdJQ0FnSUNBZ0lDQmxiR2xtSUdVNkNpQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNCemRHRnlkQ0E5Pj4iJUI2NCUiDQplY2hvIElHMWhlQ2d3TENCemFYcGxJQzBnYVc1MEtHVXBLUW9nSUNBZ0lDQWdJQ0FnSUNCcFppQnpkR0Z5ZENBK0lHVnVaQ0J2Y2lCemRHRnlkQ0ErUFNCemFYcGxPZ29nSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdjMlZzWmk1ej4+IiVCNjQlIg0KZWNobyBaVzVrWDNKbGMzQnZibk5sS0RReE5pa0tJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lITmxiR1l1YzJWdVpGOW9aV0ZrWlhJb0lrTnZiblJsYm5RdFVtRnVaMlVpTENCbUltSjVkR1Z6SUNvdmUzTnBlbVY5SWlrS0lDQWc+PiIlQjY0JSINCmVjaG8gSUNBZ0lDQWdJQ0FnSUNBZ0lITmxiR1l1Wlc1a1gyaGxZV1JsY25Nb0tRb2dJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ2NtVjBkWEp1Q2lBZ0lDQWdJQ0FnSUNBZ0lITjBZWFIxY3lBOUlESXdOZ29LSUNBZ0lDQWdJQ0JzPj4iJUI2NCUiDQplY2hvIFpXNW5kR2dnUFNCbGJtUWdMU0J6ZEdGeWRDQXJJREVLSUNBZ0lDQWdJQ0J6Wld4bUxuTmxibVJmY21WemNHOXVjMlVvYzNSaGRIVnpLUW9nSUNBZ0lDQWdJSE5sYkdZdWMyVnVaRjlvWldGa1pYSW9Ja052Ym5SbD4+IiVCNjQlIg0KZWNobyBiblF0Vkhsd1pTSXNJQ0poZFdScGJ5OTNZWFlpS1FvZ0lDQWdJQ0FnSUhObGJHWXVjMlZ1WkY5b1pXRmtaWElvSWtGalkyVndkQzFTWVc1blpYTWlMQ0FpWW5sMFpYTWlLUW9nSUNBZ0lDQWdJSE5sYkdZdWMyVnU+PiIlQjY0JSINCmVjaG8gWkY5b1pXRmtaWElvSWtOdmJuUmxiblF0UkdsemNHOXphWFJwYjI0aUxBb2dJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ1ppZDdJbWx1YkdsdVpTSWdhV1lnYVc1c2FXNWxJR1ZzYzJVZ0ltRjBkR0ZqPj4iJUI2NCUiDQplY2hvIGFHMWxiblFpZlRzZ1ptbHNaVzVoYldVOUludG1hV3hsYm1GdFpYMGlKeWtLSUNBZ0lDQWdJQ0J6Wld4bUxuTmxibVJmYUdWaFpHVnlLQ0pEYjI1MFpXNTBMVXhsYm1kMGFDSXNJSE4wY2loc1pXNW5kR2dwS1FvZz4+IiVCNjQlIg0KZWNobyBJQ0FnSUNBZ0lHbG1JSE4wWVhSMWN5QTlQU0F5TURZNkNpQWdJQ0FnSUNBZ0lDQWdJSE5sYkdZdWMyVnVaRjlvWldGa1pYSW9Ja052Ym5SbGJuUXRVbUZ1WjJVaUxDQm1JbUo1ZEdWeklIdHpkR0Z5ZEgwdGUyVnU+PiIlQjY0JSINCmVjaG8gWkgwdmUzTnBlbVY5SWlrS0lDQWdJQ0FnSUNCelpXeG1MbVZ1WkY5b1pXRmtaWEp6S0NrS0lDQWdJQ0FnSUNCcFppQnpaV3htTG1OdmJXMWhibVFnUFQwZ0lraEZRVVFpT2dvZ0lDQWdJQ0FnSUNBZ0lDQnlaWFIxPj4iJUI2NCUiDQplY2hvIGNtNEtJQ0FnSUNBZ0lDQjNhWFJvSUhSaGNtZGxkQzV2Y0dWdUtDSnlZaUlwSUdGeklHWTZDaUFnSUNBZ0lDQWdJQ0FnSUdZdWMyVmxheWh6ZEdGeWRDa0tJQ0FnSUNBZ0lDQWdJQ0FnYkdWbWRDQTlJR3hsYm1kMD4+IiVCNjQlIg0KZWNobyBhQW9nSUNBZ0lDQWdJQ0FnSUNCM2FHbHNaU0JzWldaMElENGdNRG9LSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJR05vZFc1cklEMGdaaTV5WldGa0tHMXBiaWcyTlRVek5pd2diR1ZtZENrcENpQWdJQ0FnSUNBZ0lDQWc+PiIlQjY0JSINCmVjaG8gSUNBZ0lDQnBaaUJ1YjNRZ1kyaDFibXM2Q2lBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ1luSmxZV3NLSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJSE5sYkdZdWQyWnBiR1V1ZDNKcGRHVW9ZMmgxYm1zcENpQWdJQ0FnPj4iJUI2NCUiDQplY2hvIElDQWdJQ0FnSUNBZ0lDQnNaV1owSUMwOUlHeGxiaWhqYUhWdWF5a0tDZ3BrWldZZ2NuVnVYM053YkdsMEtHcHZZaXdnYzNKakxDQnpkR1Z0Y3lrNkNpQWdJQ0J2ZFhRZ1BTQlBWVlJRVlZSVElDOGdhbTlpQ2lBZz4+IiVCNjQlIg0KZWNobyBJQ0J2ZFhRdWJXdGthWElvWlhocGMzUmZiMnM5VkhKMVpTa0tJQ0FnSUdwdlluTmJhbTlpWFM1MWNHUmhkR1VvYzNSaGRIVnpQU0p3Y205alpYTnphVzVuSWl3Z2NISnZaM0psYzNNOU5Ta0tJQ0FnSUcxdlpHVnM+PiIlQjY0JSINCmVjaG8gSUQwZ0ltaDBaR1Z0ZFdOeklnb2dJQ0FnZEhKNU9nb2dJQ0FnSUNBZ0lHTnRaQ0E5SUZ0emVYTXVaWGhsWTNWMFlXSnNaU3dnSWkxdElpd2dJbVJsYlhWamN5SXNJQ0l0YmlJc0lHMXZaR1ZzTENBaUxTMXZkWFFpPj4iJUI2NCUiDQplY2hvIExDQnpkSElvYjNWMEtTd2djM1J5S0hOeVl5bGRDaUFnSUNBZ0lDQWdhV1lnUkVWV1NVTkZXeUprWlhacFkyVWlYU0E5UFNBaVkzVmtZU0k2Q2lBZ0lDQWdJQ0FnSUNBZ0lHTnRaQ0FyUFNCYklpMWtJaXdnSW1OMT4+IiVCNjQlIg0KZWNobyBaR0VpWFFvZ0lDQWdJQ0FnSUhCeWIyTWdQU0J6ZFdKd2NtOWpaWE56TGxCdmNHVnVLR050WkN3Z2MzUmtiM1YwUFhOMVluQnliMk5sYzNNdVVFbFFSU3dnYzNSa1pYSnlQWE4xWW5CeWIyTmxjM011VTFSRVQxVlU+PiIlQjY0JSINCmVjaG8gTEFvZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJSFJsZUhROVZISjFaU3dnWW5WbWMybDZaVDB4S1FvZ0lDQWdJQ0FnSUdadmNpQnNhVzVsSUdsdUlIQnliMk11YzNSa2IzVjBPZ29nPj4iJUI2NCUiDQplY2hvIElDQWdJQ0FnSUNBZ0lDQm9hWFFnUFNCUVVrOUhVa1ZUVTE5U1JTNXpaV0Z5WTJnb2JHbHVaU2tLSUNBZ0lDQWdJQ0FnSUNBZ2FXWWdhR2wwT2dvZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnYW05aWMxdHFiMkpkV3lKdz4+IiVCNjQlIg0KZWNobyBjbTluY21WemN5SmRJRDBnYldGNEtEVXNJRzFwYmlnNU5Td2dhVzUwS0docGRDNW5jbTkxY0NneEtTa3BLUW9nSUNBZ0lDQWdJSEJ5YjJNdWQyRnBkQ2dwQ2lBZ0lDQWdJQ0FnYVdZZ2NISnZZeTV5WlhSMWNtNWo+PiIlQjY0JSINCmVjaG8gYjJSbElDRTlJREE2Q2lBZ0lDQWdJQ0FnSUNBZ0lISmhhWE5sSUZKMWJuUnBiV1ZGY25KdmNpZ2lSR1Z0ZFdOeklHTnZkV3hrSUc1dmRDQndjbTlqWlhOeklIUm9hWE1nWm1sc1pTNGlLUW9LSUNBZ0lDQWdJQ0JtPj4iJUI2NCUiDQplY2hvIGIyeGtaWElnUFNCdmRYUWdMeUJ0YjJSbGJDQXZJSE55WXk1emRHVnRDaUFnSUNBZ0lDQWdabTkxYm1RZ1BTQjdjQzV6ZEdWdE9pQndJR1p2Y2lCd0lHbHVJR1p2YkdSbGNpNW5iRzlpS0NJcUxuZGhkaUlwSUdsbT4+IiVCNjQlIg0KZWNobyBJSEF1YVhOZlptbHNaU2dwZlFvZ0lDQWdJQ0FnSUdOb2IzTmxiaUE5SUh0ck9pQjJJR1p2Y2lCckxDQjJJR2x1SUdadmRXNWtMbWwwWlcxektDa2dhV1lnYXlCcGJpQnpkR1Z0YzMwZ2IzSWdabTkxYm1RS0lDQWc+PiIlQjY0JSINCmVjaG8gSUNBZ0lDQm1hV3hsY3lBOUlIdHJPaUJtSWk5aGNHa3ZaRzkzYm14dllXUXZlMnB2WW4wdmUyMXZaR1ZzZlM5N2MzSmpMbk4wWlcxOUwzdDJMbTVoYldWOUlpQm1iM0lnYXl3Z2RpQnBiaUJqYUc5elpXNHVhWFJsPj4iJUI2NCUiDQplY2hvIGJYTW9LWDBLSUNBZ0lDQWdJQ0JxYjJKelcycHZZbDB1ZFhCa1lYUmxLSE4wWVhSMWN6MGlZMjl0Y0d4bGRHVWlMQ0J3Y205bmNtVnpjejB4TURBc0lHWnBiR1Z6UFdacGJHVnpLUW9nSUNBZ1pYaGpaWEIwSUVWND4+IiVCNjQlIg0KZWNobyBZMlZ3ZEdsdmJpQmhjeUJsZUdNNkNpQWdJQ0FnSUNBZ2FtOWljMXRxYjJKZExuVndaR0YwWlNoemRHRjBkWE05SW1WeWNtOXlJaXdnWlhKeWIzSTljM1J5S0dWNFl5a3BDaUFnSUNCbWFXNWhiR3g1T2dvZ0lDQWc+PiIlQjY0JSINCmVjaG8gSUNBZ0lIUnllVG9LSUNBZ0lDQWdJQ0FnSUNBZ2MzSmpMblZ1YkdsdWF5aHRhWE56YVc1blgyOXJQVlJ5ZFdVcENpQWdJQ0FnSUNBZ1pYaGpaWEIwSUVWNFkyVndkR2x2YmpvS0lDQWdJQ0FnSUNBZ0lDQWdjR0Z6Pj4iJUI2NCUiDQplY2hvIGN3b0tDbVJsWmlCdFlXbHVLQ2s2Q2lBZ0lDQnNhVzVsSUQwZ0lqMGlJQ29nTlRnS0lDQWdJSEJ5YVc1MEtHeHBibVVwQ2lBZ0lDQndjbWx1ZENnaUlDQWdXRlpXU1VsWUlDMGdURzlqWVd3Z1JXNW5hVzVsSWlrSz4+IiVCNjQlIg0KZWNobyBJQ0FnSUhCeWFXNTBLR3hwYm1VcENpQWdJQ0J3Y21sdWRDaG1JaUFnSUVSbGRtbGpaU0FnT2lCN1JFVldTVU5GV3lkdVlXMWxKMTE5SWlrS0lDQWdJSEJ5YVc1MEtHWWlJQ0FnUVdSa2NtVnpjeUE2SUdoMGRIQTY+PiIlQjY0JSINCmVjaG8gTHk5N1NFOVRWSDA2ZTFCUFVsUjlJaWtLSUNBZ0lIQnlhVzUwS0d4cGJtVXBDaUFnSUNCd2NtbHVkQ2dwQ2lBZ0lDQndjbWx1ZENnaUlDQWdVa1ZCUkZrZ0xTQm5ieUJpWVdOcklIUnZJSFJvWlNCM1pXSnphWFJsPj4iJUI2NCUiDQplY2hvIExDQnBkQ0JqYjI1dVpXTjBjeUJoZFhSdmJXRjBhV05oYkd4NUxpSXBDaUFnSUNCd2NtbHVkQ2dpSUNBZ1MyVmxjQ0IwYUdseklIZHBibVJ2ZHlCdmNHVnVMaUJRY21WemN5QkRkSEpzSzBNZ2RHOGdjM1J2Y0M0aT4+IiVCNjQlIg0KZWNobyBLUW9nSUNBZ2NISnBiblFvS1FvZ0lDQWdkSEo1T2dvZ0lDQWdJQ0FnSUZSb2NtVmhaR2x1WjBoVVZGQlRaWEoyWlhJb0tFaFBVMVFzSUZCUFVsUXBMQ0JJWVc1a2JHVnlLUzV6WlhKMlpWOW1iM0psZG1WeUtDa0s+PiIlQjY0JSINCmVjaG8gSUNBZ0lHVjRZMlZ3ZENCTFpYbGliMkZ5WkVsdWRHVnljblZ3ZERvS0lDQWdJQ0FnSUNCd2NtbHVkQ2dpWEc0Z0lDQkZibWRwYm1VZ2MzUnZjSEJsWkM0aUtRb0tDbWxtSUY5ZmJtRnRaVjlmSUQwOUlDSmZYMjFoPj4iJUI2NCUiDQplY2hvIGFXNWZYeUk2Q2lBZ0lDQnRZV2x1S0NrSz4+IiVCNjQlIg0KY2VydHV0aWwgLWRlY29kZSAiJUI2NCUiICJ4dnZpaXhfZW5naW5lLnB5IiA+bnVsIDI+JjENCmlmIGVycm9ybGV2ZWwgMSAoDQogICAgZWNobyAgICAgICAgRkFJTEVEIC0gY291bGQgbm90IHdyaXRlIHRoZSBlbmdpbmUgZmlsZQ0KICAgIGRlbCAiJUI2NCUiID5udWwgMj4mMQ0KICAgIHBhdXNlDQogICAgZXhpdCAvYiAxDQopDQpkZWwgIiVCNjQlIiA+bnVsIDI+JjENCg0KZWNoby4NCmVjaG8gIFs0LzRdIFN0YXJ0aW5nIHRoZSBlbmdpbmUuLi4NCmVjaG8uDQplY2hvICA9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0NCmVjaG8gICAgIFJFQURZDQplY2hvLg0KZWNobyAgICAgR28gYmFjayB0byB0aGUgd2Vic2l0ZSAtIGl0IGNvbm5lY3RzIGF1dG9tYXRpY2FsbHkuDQplY2hvICAgICBLZWVwIHRoaXMgd2luZG93IG9wZW4gd2hpbGUgeW91IHdvcmsuDQplY2hvICAgICBQcmVzcyBDdHJsK0MgdG8gc3RvcC4NCmVjaG8gID09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PQ0KZWNoby4NCiIlUFklIiB4dnZpaXhfZW5naW5lLnB5DQpwYXVzZQ0KZXhpdCAvYiAwDQoNCjpub3B5dGhvbg0KZWNoby4NCmVjaG8gICAgICAgIFB5dGhvbiBpcyBub3QgaW5zdGFsbGVkIChvciBub3Qgb24geW91ciBQQVRIXikuDQplY2hvLg0KZWNobyAgICAgICAgMS4gR28gdG8gaHR0cHM6Ly93d3cucHl0aG9uLm9yZy9kb3dubG9hZHMvDQplY2hvICAgICAgICAyLiBEb3dubG9hZCBhbmQgcnVuIHRoZSBpbnN0YWxsZXINCmVjaG8gICAgICAgIDMuIElNUE9SVEFOVDogdGljayAiQWRkIFB5dGhvbiB0byBQQVRIIg0KZWNobyAgICAgICAgNC4gUnVuIHRoaXMgZmlsZSBhZ2Fpbg0KZWNoby4NCnN0YXJ0IGh0dHBzOi8vd3d3LnB5dGhvbi5vcmcvZG93bmxvYWRzLw0KcGF1c2UNCmV4aXQgL2IgMQ0KDQo6YmFkdmVyc2lvbg0KZWNoby4NCmVjaG8gICAgICAgIFlvdXIgUHl0aG9uIGlzIHRvbyBvbGQuIFZlcnNpb24gMy45IG9yIG5ld2VyIGlzIHJlcXVpcmVkLg0KZWNobyAgICAgICAgR2V0IGl0IGZyb20gaHR0cHM6Ly93d3cucHl0aG9uLm9yZy9kb3dubG9hZHMvDQplY2hvLg0Kc3RhcnQgaHR0cHM6Ly93d3cucHl0aG9uLm9yZy9kb3dubG9hZHMvDQpwYXVzZQ0KZXhpdCAvYiAxDQo=","sh":"IyEvdXNyL2Jpbi9lbnYgYmFzaAojIFhWVklJWCAtIExvY2FsIEVuZ2luZSBTZXR1cCAobWFjT1MgLyBMaW51eCkKc2V0IC11CmNkICIkKGRpcm5hbWUgIiQwIikiCgpHPSdcMDMzWzA7MzJtJzsgUj0nXDAzM1swOzMxbSc7IFk9J1wwMzNbMTszM20nOyBOPSdcMDMzWzBtJwoKZWNobwplY2hvICIgID09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PSIKZWNobyAiICAgICAgICAgICAgICAgIFhWVklJWCAtIExvY2FsIEVuZ2luZSBTZXR1cCIKZWNobyAiICA9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0iCmVjaG8KZWNobyAiICAgVGhpcyB3aWxsIHNldCB1cCB0aGUgRGVtdWNzIEFJIGVuZ2luZSBvbiB0aGlzIGNvbXB1dGVyLiIKZWNobwplY2hvICIgICAgIFsxXSBDaGVjayBQeXRob24iCmVjaG8gIiAgICAgWzJdIENyZWF0ZSBhbiBpc29sYXRlZCBlbnZpcm9ubWVudCBpbiB0aGlzIGZvbGRlciIKZWNobyAiICAgICBbM10gRG93bmxvYWQgdGhlIEFJIGVuZ2luZSIKZWNobyAiICAgICBbNF0gU3RhcnQgdGhlIGVuZ2luZSIKZWNobwplY2hvICIgICBEb3dubG9hZCBzaXplOiIKZWNobyAiICAgICAtIENQVSBvbmx5ICAgICAgICA6IGFib3V0IDI1MCBNQiIKZWNobyAiICAgICAtIE5WSURJQSBHUFUgICAgICA6IGFib3V0IDIuNSBHQiAoQ1VEQSBsaWJyYXJpZXMpIgplY2hvCmVjaG8gIiAgIEV2ZXJ5dGhpbmcgc3RheXMgaW4gdGhpcyBmb2xkZXIuIERlbGV0ZSBpdCB0byB1bmluc3RhbGwuIgplY2hvCnJlYWQgLXJwICIgICBQcmVzcyBFbnRlciB0byBjb250aW51ZS4uLiAiIF8KZWNobwoKZWNobyAiICBbMS80XSBDaGVja2luZyBQeXRob24uLi4iClBZPSIiCmZvciBjIGluIHB5dGhvbjMuMTIgcHl0aG9uMy4xMSBweXRob24zLjEwIHB5dGhvbjM7IGRvCiAgaWYgY29tbWFuZCAtdiAiJGMiID4vZGV2L251bGwgMj4mMTsgdGhlbiBQWT0iJGMiOyBicmVhazsgZmkKZG9uZQppZiBbIC16ICIkUFkiIF07IHRoZW4KICBlY2hvIC1lICIgICAgICAgJHtSfVB5dGhvbiBub3QgZm91bmQuJHtOfSIKICBlY2hvICIgICAgICAgSW5zdGFsbCBpdCBmcm9tIGh0dHBzOi8vd3d3LnB5dGhvbi5vcmcvZG93bmxvYWRzLyIKICBjb21tYW5kIC12IGJyZXcgPi9kZXYvbnVsbCAyPiYxICYmIGVjaG8gIiAgICAgICBvciBydW46ICBicmV3IGluc3RhbGwgcHl0aG9uIgogIGV4aXQgMQpmaQplY2hvIC1lICIgICAgICAgJHtHfU9LIC0gJCgkUFkgLS12ZXJzaW9uKSR7Tn0iCmVjaG8KCmVjaG8gIiAgWzIvNF0gQ3JlYXRpbmcgaXNvbGF0ZWQgZW52aXJvbm1lbnQuLi4iCmlmIFsgLXggIi52ZW52L2Jpbi9weXRob24iIF07IHRoZW4KICBlY2hvIC1lICIgICAgICAgJHtHfU9LIC0gYWxyZWFkeSBleGlzdHMke059IgplbHNlCiAgIiRQWSIgLW0gdmVudiAudmVudiB8fCB7IGVjaG8gLWUgIiAgICAgICAke1J9RkFJTEVEJHtOfSI7IGV4aXQgMTsgfQogIGVjaG8gLWUgIiAgICAgICAke0d9T0sgLSBjcmVhdGVkJHtOfSIKZmkKVlBZPSIudmVudi9iaW4vcHl0aG9uIgplY2hvCgplY2hvICIgIFszLzRdIEluc3RhbGxpbmcgdGhlIEFJIGVuZ2luZS4uLiIKaWYgWyAtZiAiLnZlbnYvLmluc3RhbGxlZCIgXTsgdGhlbgogIGVjaG8gLWUgIiAgICAgICAke0d9T0sgLSBhbHJlYWR5IGluc3RhbGxlZCR7Tn0iCmVsc2UKICAiJFZQWSIgLW0gcGlwIGluc3RhbGwgLS1xdWlldCAtLXVwZ3JhZGUgcGlwCiAgaWYgY29tbWFuZCAtdiBudmlkaWEtc21pID4vZGV2L251bGwgMj4mMTsgdGhlbgogICAgZWNobyAiICAgICAgIE5WSURJQSBHUFUgZGV0ZWN0ZWQgLSBpbnN0YWxsaW5nIENVREEgYnVpbGQgKGFib3V0IDIuNSBHQikiCiAgICAiJFZQWSIgLW0gcGlwIGluc3RhbGwgdG9yY2ggdG9yY2hhdWRpbyAtLWluZGV4LXVybCBodHRwczovL2Rvd25sb2FkLnB5dG9yY2gub3JnL3dobC9jdTEyMSBcCiAgICAgIHx8ICIkVlBZIiAtbSBwaXAgaW5zdGFsbCB0b3JjaCB0b3JjaGF1ZGlvIC0taW5kZXgtdXJsIGh0dHBzOi8vZG93bmxvYWQucHl0b3JjaC5vcmcvd2hsL2NwdQogIGVsaWYgWyAiJCh1bmFtZSAtcykiID0gIkRhcndpbiIgXTsgdGhlbgogICAgZWNobyAiICAgICAgIG1hY09TIGRldGVjdGVkIC0gaW5zdGFsbGluZyB0aGUgc3RhbmRhcmQgYnVpbGQgKGFib3V0IDI1MCBNQikiCiAgICAiJFZQWSIgLW0gcGlwIGluc3RhbGwgdG9yY2ggdG9yY2hhdWRpbwogIGVsc2UKICAgIGVjaG8gIiAgICAgICBObyBOVklESUEgR1BVIC0gaW5zdGFsbGluZyB0aGUgc21hbGwgQ1BVIGJ1aWxkIChhYm91dCAyNTAgTUIpIgogICAgIiRWUFkiIC1tIHBpcCBpbnN0YWxsIHRvcmNoIHRvcmNoYXVkaW8gLS1pbmRleC11cmwgaHR0cHM6Ly9kb3dubG9hZC5weXRvcmNoLm9yZy93aGwvY3B1CiAgZmkKICAiJFZQWSIgLW0gcGlwIGluc3RhbGwgZGVtdWNzIHNvdW5kZmlsZSB8fCB7IGVjaG8gLWUgIiAgICAgICAke1J9RkFJTEVEJHtOfSI7IGV4aXQgMTsgfQogIHRvdWNoIC52ZW52Ly5pbnN0YWxsZWQKICBlY2hvIC1lICIgICAgICAgJHtHfU9LIC0gaW5zdGFsbGVkJHtOfSIKZmkKZWNobwoKIyB1bnBhY2sgdGhlIGVtYmVkZGVkIGVuZ2luZSAoc2luZ2xlIGhlcmVkb2MsIGRlY29kZWQgcG9ydGFibHkpCmlmIGJhc2U2NCAtLWhlbHAgMj4mMSB8IGdyZXAgLXEgLS0gJy1kLCc7IHRoZW4gREVDPSJiYXNlNjQgLWQiOyBlbHNlIERFQz0iYmFzZTY0IC0tZGVjb2RlIjsgZmkKY2F0IDw8J1hWVklJWF9CNjQnID4gLnh2dmlpeF9wYXlsb2FkLmI2NApJaUlpQ2xoV1ZrbEpXQ0F0SUd4dlkyRnNJRWRRVlM5RFVGVWdaVzVuYVc1bExnb0tVblZ1Y3lCRVpXMTFZM01nYjI0Z2RHaGxJSFZ6WlhJbmN5QnZkMjRnYldGamFHbHVaU0JoYm1RZ1pYaHdiM05sY3lCaElIUnBibmtnU0ZSVVVDQkJVRWtnZEdoaGRDQjBhR1VLZDJWaWMybDBaU0FvYUc5emRHVmtJRzl1SUVkcGRFaDFZaUJRWVdkbGN5a2dZMkZ1SUdOaGJHd3VJRUYxWkdsdklHNWxkbVZ5SUd4bFlYWmxjeUIwYUdVZ2JXRmphR2x1WlM0S0NsTjBZWEowWldRZ1lYVjBiMjFoZEdsallXeHNlU0JpZVNCcGJuTjBZV3hzTFhoMmRtbHBlQzVpWVhRZ0x5QnBibk4wWVd4c0xYaDJkbWxwZUM1emFDNEtJaUlpQ2dwcGJYQnZjblFnYW5OdmJncHBiWEJ2Y25RZ2IzTUthVzF3YjNKMElISmxDbWx0Y0c5eWRDQnphSFYwYVd3S2FXMXdiM0owSUhOMVluQnliMk5sYzNNS2FXMXdiM0owSUhONWN3cHBiWEJ2Y25RZ2RHaHlaV0ZrYVc1bkNtbHRjRzl5ZENCMWRXbGtDbVp5YjIwZ1pXMWhhV3d1Y0dGeWMyVnlJR2x0Y0c5eWRDQkNlWFJsYzFCaGNuTmxjZ3BtY205dElHVnRZV2xzTG5CdmJHbGplU0JwYlhCdmNuUWdaR1ZtWVhWc2RBcG1jbTl0SUdoMGRIQXVjMlZ5ZG1WeUlHbHRjRzl5ZENCVWFISmxZV1JwYm1kSVZGUlFVMlZ5ZG1WeUxDQkNZWE5sU0ZSVVVGSmxjWFZsYzNSSVlXNWtiR1Z5Q21aeWIyMGdjR0YwYUd4cFlpQnBiWEJ2Y25RZ1VHRjBhQXBtY205dElIVnliR3hwWWk1d1lYSnpaU0JwYlhCdmNuUWdkVzV4ZFc5MFpRb0tVazlQVkNBOUlGQmhkR2dvWDE5bWFXeGxYMThwTG5KbGMyOXNkbVVvS1M1d1lYSmxiblFLVlZCTVQwRkVVeUE5SUZKUFQxUWdMeUFpZFhCc2IyRmtjeUlLVDFWVVVGVlVVeUE5SUZKUFQxUWdMeUFpYjNWMGNIVjBjeUlLVlZCTVQwRkVVeTV0YTJScGNpaGxlR2x6ZEY5dmF6MVVjblZsS1FwUFZWUlFWVlJUTG0xclpHbHlLR1Y0YVhOMFgyOXJQVlJ5ZFdVcENncElUMU5VSUQwZ2IzTXVaVzUyYVhKdmJpNW5aWFFvSWxoV1ZrbEpXRjlJVDFOVUlpd2dJakV5Tnk0d0xqQXVNU0lwQ2xCUFVsUWdQU0JwYm5Rb2IzTXVaVzUyYVhKdmJpNW5aWFFvSWxoV1ZrbEpXRjlRVDFKVUlpd2dJamczTmpVaUtTa0tUVUZZWDFWUVRFOUJSQ0E5SURVd01DQXFJREV3TWpRZ0tpQXhNREkwQ2tGTVRFOVhSVVJmUlZoVUlEMGdleUl1ZDJGMklpd2dJaTV0Y0RNaUxDQWlMbVpzWVdNaUxDQWlMbTAwWVNJc0lDSXVZV0ZqSWl3Z0lpNXZaMmNpTENBaUxtRnBabVlpTENBaUxtRnBaaUo5Q2xOVVJVMWZUa0ZOUlZNZ1BTQjdJblp2WTJGc2N5SXNJQ0prY25WdGN5SXNJQ0ppWVhOeklpd2dJbTkwYUdWeUluMEtVMEZHUlNBOUlISmxMbU52YlhCcGJHVW9jaUplVzF4M0xsd3RYU3NrSWlrS1VGSlBSMUpGVTFOZlVrVWdQU0J5WlM1amIyMXdhV3hsS0hJaUtGeGtlekVzTTMwcEpTSXBDZ3BxYjJKeklEMGdlMzBLQ2dwa1pXWWdaM0IxWDJsdVptOG9LVG9LSUNBZ0lIUnllVG9LSUNBZ0lDQWdJQ0JwYlhCdmNuUWdkRzl5WTJnS0NpQWdJQ0FnSUNBZ2FXWWdkRzl5WTJndVkzVmtZUzVwYzE5aGRtRnBiR0ZpYkdVb0tUb0tJQ0FnSUNBZ0lDQWdJQ0FnY21WMGRYSnVJSHNpWkdWMmFXTmxJam9nSW1OMVpHRWlMQ0FpYm1GdFpTSTZJSFJ2Y21Ob0xtTjFaR0V1WjJWMFgyUmxkbWxqWlY5dVlXMWxLREFwZlFvZ0lDQWdaWGhqWlhCMElFVjRZMlZ3ZEdsdmJqb0tJQ0FnSUNBZ0lDQndZWE56Q2lBZ0lDQnlaWFIxY200Z2V5SmtaWFpwWTJVaU9pQWlZM0IxSWl3Z0ltNWhiV1VpT2lBaVExQlZJbjBLQ2dwRVJWWkpRMFVnUFNCbmNIVmZhVzVtYnlncENnb0tZMnhoYzNNZ1NHRnVaR3hsY2loQ1lYTmxTRlJVVUZKbGNYVmxjM1JJWVc1a2JHVnlLVG9LSUNBZ0lITmxjblpsY2w5MlpYSnphVzl1SUQwZ0lsaFdWa2xKV0M4eUxqQWlDZ29nSUNBZ1pHVm1JR3h2WjE5dFpYTnpZV2RsS0hObGJHWXNJR1p0ZEN3Z0ttRnlaM01wT2dvZ0lDQWdJQ0FnSUNNZ2EyVmxjQ0IwYUdVZ1kyOXVjMjlzWlNCeVpXRmtZV0pzWlNCbWIzSWdibTl1TFhSbFkyaHVhV05oYkNCMWMyVnljd29nSUNBZ0lDQWdJR2xtSUNJdllYQnBMMmhsWVd4MGFDSWdibTkwSUdsdUlDaGhjbWR6V3pCZElHbG1JR0Z5WjNNZ1pXeHpaU0FpSWlrNkNpQWdJQ0FnSUNBZ0lDQWdJSE41Y3k1emRHUnZkWFF1ZDNKcGRHVW9JaUFnTFNBbGMxeHVJaUFsSUNobWJYUWdKU0JoY21kektTa0tDaUFnSUNCa1pXWWdYMk52Y25Nb2MyVnNaaWs2Q2lBZ0lDQWdJQ0FnYjNKcFoybHVJRDBnYzJWc1ppNW9aV0ZrWlhKekxtZGxkQ2dpVDNKcFoybHVJaWtLSUNBZ0lDQWdJQ0JwWmlCdmNtbG5hVzQ2Q2lBZ0lDQWdJQ0FnSUNBZ0lITmxiR1l1YzJWdVpGOW9aV0ZrWlhJb0lrRmpZMlZ6Y3kxRGIyNTBjbTlzTFVGc2JHOTNMVTl5YVdkcGJpSXNJRzl5YVdkcGJpa0tJQ0FnSUNBZ0lDQWdJQ0FnYzJWc1ppNXpaVzVrWDJobFlXUmxjaWdpVm1GeWVTSXNJQ0pQY21sbmFXNGlLUW9nSUNBZ0lDQWdJR1ZzYzJVNkNpQWdJQ0FnSUNBZ0lDQWdJSE5sYkdZdWMyVnVaRjlvWldGa1pYSW9Ja0ZqWTJWemN5MURiMjUwY205c0xVRnNiRzkzTFU5eWFXZHBiaUlzSUNJcUlpa0tJQ0FnSUNBZ0lDQnpaV3htTG5ObGJtUmZhR1ZoWkdWeUtDSkJZMk5sYzNNdFEyOXVkSEp2YkMxQmJHeHZkeTFJWldGa1pYSnpJaXdnSWtOdmJuUmxiblF0Vkhsd1pTd2dVbUZ1WjJVaUtRb2dJQ0FnSUNBZ0lITmxiR1l1YzJWdVpGOW9aV0ZrWlhJb0lrRmpZMlZ6Y3kxRGIyNTBjbTlzTFVGc2JHOTNMVTFsZEdodlpITWlMQ0FpUjBWVUxDQlFUMU5VTENCSVJVRkVMQ0JQVUZSSlQwNVRJaWtLSUNBZ0lDQWdJQ0J6Wld4bUxuTmxibVJmYUdWaFpHVnlLQ0pCWTJObGMzTXRRMjl1ZEhKdmJDMUZlSEJ2YzJVdFNHVmhaR1Z5Y3lJc0lDSkRiMjUwWlc1MExVeGxibWQwYUN3Z1EyOXVkR1Z1ZEMxU1lXNW5aU3dnUVdOalpYQjBMVkpoYm1kbGN5SXBDaUFnSUNBZ0lDQWdjMlZzWmk1elpXNWtYMmhsWVdSbGNpZ2lRV05qWlhOekxVTnZiblJ5YjJ3dFRXRjRMVUZuWlNJc0lDSTROalF3TUNJcENnb2dJQ0FnWkdWbUlHVnVaRjlvWldGa1pYSnpLSE5sYkdZcE9nb2dJQ0FnSUNBZ0lITmxiR1l1YzJWdVpGOW9aV0ZrWlhJb0lrTmhZMmhsTFVOdmJuUnliMndpTENBaWJtOHRjM1J2Y21VaUtRb2dJQ0FnSUNBZ0lITmxiR1l1WDJOdmNuTW9LUW9nSUNBZ0lDQWdJSE4xY0dWeUtDa3VaVzVrWDJobFlXUmxjbk1vS1FvS0lDQWdJR1JsWmlCa2IxOVBVRlJKVDA1VEtITmxiR1lwT2dvZ0lDQWdJQ0FnSUhObGJHWXVjMlZ1WkY5eVpYTndiMjV6WlNneU1EUXBDaUFnSUNBZ0lDQWdjMlZzWmk1elpXNWtYMmhsWVdSbGNpZ2lRMjl1ZEdWdWRDMU1aVzVuZEdnaUxDQWlNQ0lwQ2lBZ0lDQWdJQ0FnYzJWc1ppNWxibVJmYUdWaFpHVnljeWdwQ2dvZ0lDQWdaR1ZtSUhObGJtUmZhbk52YmloelpXeG1MQ0JrWVhSaExDQmpiMlJsUFRJd01DazZDaUFnSUNBZ0lDQWdjbUYzSUQwZ2FuTnZiaTVrZFcxd2N5aGtZWFJoS1M1bGJtTnZaR1VvS1FvZ0lDQWdJQ0FnSUhObGJHWXVjMlZ1WkY5eVpYTndiMjV6WlNoamIyUmxLUW9nSUNBZ0lDQWdJSE5sYkdZdWMyVnVaRjlvWldGa1pYSW9Ja052Ym5SbGJuUXRWSGx3WlNJc0lDSmhjSEJzYVdOaGRHbHZiaTlxYzI5dUlpa0tJQ0FnSUNBZ0lDQnpaV3htTG5ObGJtUmZhR1ZoWkdWeUtDSkRiMjUwWlc1MExVeGxibWQwYUNJc0lITjBjaWhzWlc0b2NtRjNLU2twQ2lBZ0lDQWdJQ0FnYzJWc1ppNWxibVJmYUdWaFpHVnljeWdwQ2lBZ0lDQWdJQ0FnYzJWc1ppNTNabWxzWlM1M2NtbDBaU2h5WVhjcENnb2dJQ0FnSXlBdExTMHRMUzB0TFMwdExTMHRMUzB0SUZCUFUxUWdMUzB0TFMwdExTMHRMUzB0TFMwdExRb2dJQ0FnWkdWbUlHUnZYMUJQVTFRb2MyVnNaaWs2Q2lBZ0lDQWdJQ0FnYVdZZ2MyVnNaaTV3WVhSb0lDRTlJQ0l2WVhCcEwzTndiR2wwSWpvS0lDQWdJQ0FnSUNBZ0lDQWdjMlZzWmk1elpXNWtYMnB6YjI0b2V5Smxjbkp2Y2lJNklDSk9iM1FnWm05MWJtUWlmU3dnTkRBMEtRb2dJQ0FnSUNBZ0lDQWdJQ0J5WlhSMWNtNEtJQ0FnSUNBZ0lDQjBjbms2Q2lBZ0lDQWdJQ0FnSUNBZ0lHeGxibWQwYUNBOUlHbHVkQ2h6Wld4bUxtaGxZV1JsY25NdVoyVjBLQ0pEYjI1MFpXNTBMVXhsYm1kMGFDSXNJQ0l3SWlrcENpQWdJQ0FnSUNBZ0lDQWdJR2xtSUd4bGJtZDBhQ0E4UFNBd09nb2dJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ2NtRnBjMlVnVm1Gc2RXVkZjbkp2Y2lnaVJXMXdkSGtnY21WeGRXVnpkQ0lwQ2lBZ0lDQWdJQ0FnSUNBZ0lHbG1JR3hsYm1kMGFDQStJRTFCV0Y5VlVFeFBRVVE2Q2lBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0J6Wld4bUxuTmxibVJmYW5OdmJpaDdJbVZ5Y205eUlqb2dJa1pwYkdVZ2JHRnlaMlZ5SUhSb1lXNGdOVEF3SUUxQ0luMHNJRFF4TXlrS0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUhKbGRIVnliZ29nSUNBZ0lDQWdJQ0FnSUNCamRIbHdaU0E5SUhObGJHWXVhR1ZoWkdWeWN5NW5aWFFvSWtOdmJuUmxiblF0Vkhsd1pTSXNJQ0lpS1FvZ0lDQWdJQ0FnSUNBZ0lDQnBaaUFpYlhWc2RHbHdZWEowTDJadmNtMHRaR0YwWVNJZ2JtOTBJR2x1SUdOMGVYQmxPZ29nSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdjbUZwYzJVZ1ZtRnNkV1ZGY25KdmNpZ2lSWGh3WldOMFpXUWdiWFZzZEdsd1lYSjBMMlp2Y20wdFpHRjBZU0lwQ2dvZ0lDQWdJQ0FnSUNBZ0lDQmliMlI1SUQwZ2MyVnNaaTV5Wm1sc1pTNXlaV0ZrS0d4bGJtZDBhQ2tLSUNBZ0lDQWdJQ0FnSUNBZ2JYTm5JRDBnUW5sMFpYTlFZWEp6WlhJb2NHOXNhV041UFdSbFptRjFiSFFwTG5CaGNuTmxZbmwwWlhNb0NpQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNCbUlrTnZiblJsYm5RdFZIbHdaVG9nZTJOMGVYQmxmVnh5WEc1TlNVMUZMVlpsY25OcGIyNDZJREV1TUZ4eVhHNWNjbHh1SWk1bGJtTnZaR1VvS1NBcklHSnZaSGtLSUNBZ0lDQWdJQ0FnSUNBZ0tRb0tJQ0FnSUNBZ0lDQWdJQ0FnWm1sc1pXNWhiV1VnUFNCbWFXeGxaR0YwWVNBOUlFNXZibVVLSUNBZ0lDQWdJQ0FnSUNBZ1ptbGxiR1J6SUQwZ2UzMEtJQ0FnSUNBZ0lDQWdJQ0FnWm05eUlIQmhjblFnYVc0Z2JYTm5MbWwwWlhKZmNHRnlkSE1vS1RvS0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUc1aGJXVWdQU0J3WVhKMExtZGxkRjl3WVhKaGJTZ2libUZ0WlNJc0lHaGxZV1JsY2owaVkyOXVkR1Z1ZEMxa2FYTndiM05wZEdsdmJpSXBDaUFnSUNBZ0lDQWdJQ0FnSUNBZ0lDQnBaaUJ1WVcxbElEMDlJQ0ptYVd4bElqb0tJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0JtYVd4bGJtRnRaU0E5SUhCaGNuUXVaMlYwWDJacGJHVnVZVzFsS0NrS0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lDQm1hV3hsWkdGMFlTQTlJSEJoY25RdVoyVjBYM0JoZVd4dllXUW9aR1ZqYjJSbFBWUnlkV1VwQ2lBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0JsYkdsbUlHNWhiV1U2Q2lBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ1ptbGxiR1J6VzI1aGJXVmRJRDBnY0dGeWRDNW5aWFJmWTI5dWRHVnVkQ2dwQ2dvZ0lDQWdJQ0FnSUNBZ0lDQnBaaUJ1YjNRZ1ptbHNaVzVoYldVZ2IzSWdibTkwSUdacGJHVmtZWFJoT2dvZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnY21GcGMyVWdWbUZzZFdWRmNuSnZjaWdpVG04Z1lYVmthVzhnWm1sc1pTQnlaV05sYVhabFpDSXBDaUFnSUNBZ0lDQWdJQ0FnSUdWNGRDQTlJRkJoZEdnb1ptbHNaVzVoYldVcExuTjFabVpwZUM1c2IzZGxjaWdwSUc5eUlDSXVkMkYySWdvZ0lDQWdJQ0FnSUNBZ0lDQnBaaUJsZUhRZ2JtOTBJR2x1SUVGTVRFOVhSVVJmUlZoVU9nb2dJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ2NtRnBjMlVnVm1Gc2RXVkZjbkp2Y2lobUoxVnVjM1Z3Y0c5eWRHVmtJR1pwYkdVZ2RIbHdaU0FpZTJWNGRIMGlKeWtLQ2lBZ0lDQWdJQ0FnSUNBZ0lIUnllVG9LSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJSE4wWlcxeklEMGdhbk52Ymk1c2IyRmtjeWhtYVdWc1pITXVaMlYwS0NKemRHVnRjeUlzSUNKYlhTSXBLUW9nSUNBZ0lDQWdJQ0FnSUNCbGVHTmxjSFFnYW5OdmJpNUtVMDlPUkdWamIyUmxSWEp5YjNJNkNpQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNCemRHVnRjeUE5SUZ0ZENpQWdJQ0FnSUNBZ0lDQWdJSE4wWlcxeklEMGdXM01nWm05eUlITWdhVzRnYzNSbGJYTWdhV1lnY3lCcGJpQlRWRVZOWDA1QlRVVlRYU0J2Y2lCc2FYTjBLRk5VUlUxZlRrRk5SVk1wQ2dvZ0lDQWdJQ0FnSUNBZ0lDQnFiMklnUFNCemRISW9kWFZwWkM1MWRXbGtOQ2dwS1FvZ0lDQWdJQ0FnSUNBZ0lDQnpjbU1nUFNCVlVFeFBRVVJUSUM4Z0tHcHZZaUFySUdWNGRDa0tJQ0FnSUNBZ0lDQWdJQ0FnYzNKakxuZHlhWFJsWDJKNWRHVnpLR1pwYkdWa1lYUmhLUW9nSUNBZ0lDQWdJQ0FnSUNCcWIySnpXMnB2WWwwZ1BTQjdJbk4wWVhSMWN5STZJQ0p4ZFdWMVpXUWlMQ0FpY0hKdlozSmxjM01pT2lBd0xDQWlibUZ0WlNJNklHWnBiR1Z1WVcxbGZRb2dJQ0FnSUNBZ0lDQWdJQ0IwYUhKbFlXUnBibWN1VkdoeVpXRmtLSFJoY21kbGREMXlkVzVmYzNCc2FYUXNJR0Z5WjNNOUtHcHZZaXdnYzNKakxDQnpkR1Z0Y3lrc0lHUmhaVzF2YmoxVWNuVmxLUzV6ZEdGeWRDZ3BDaUFnSUNBZ0lDQWdJQ0FnSUhObGJHWXVjMlZ1WkY5cWMyOXVLSHNpYW05aVgybGtJam9nYW05aWZTa0tJQ0FnSUNBZ0lDQmxlR05sY0hRZ1JYaGpaWEIwYVc5dUlHRnpJR1Y0WXpvS0lDQWdJQ0FnSUNBZ0lDQWdjMlZzWmk1elpXNWtYMnB6YjI0b2V5Smxjbkp2Y2lJNklITjBjaWhsZUdNcGZTd2dOREF3S1FvS0lDQWdJQ01nTFMwdExTMHRMUzB0TFMwdExTMHRMU0JIUlZRZ0xTMHRMUzB0TFMwdExTMHRMUzB0TFFvZ0lDQWdaR1ZtSUdSdlgwaEZRVVFvYzJWc1ppazZDaUFnSUNBZ0lDQWdjMlZzWmk1a2IxOUhSVlFvS1FvS0lDQWdJR1JsWmlCa2IxOUhSVlFvYzJWc1ppazZDaUFnSUNBZ0lDQWdhV1lnYzJWc1ppNXdZWFJvSUQwOUlDSXZZWEJwTDJobFlXeDBhQ0k2Q2lBZ0lDQWdJQ0FnSUNBZ0lITmxiR1l1YzJWdVpGOXFjMjl1S0hzS0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNKaGNIQWlPaUFpV0ZaV1NVbFlJaXdLSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0oyWlhKemFXOXVJam9nSWpJdU1DSXNDaUFnSUNBZ0lDQWdJQ0FnSUNBZ0lDQWlaVzVuYVc1bElqb2dJbVJsYlhWamN5SXNDaUFnSUNBZ0lDQWdJQ0FnSUNBZ0lDQWlaR1YyYVdObElqb2dSRVZXU1VORld5SmtaWFpwWTJVaVhTd0tJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lDSmtaWFpwWTJWZmJtRnRaU0k2SUVSRlZrbERSVnNpYm1GdFpTSmRMQW9nSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJbTlySWpvZ1ZISjFaU3dLSUNBZ0lDQWdJQ0FnSUNBZ2ZTa0tJQ0FnSUNBZ0lDQWdJQ0FnY21WMGRYSnVDZ29nSUNBZ0lDQWdJR2xtSUhObGJHWXVjR0YwYUM1emRHRnlkSE4zYVhSb0tDSXZZWEJwTDNOMFlYUjFjeThpS1RvS0lDQWdJQ0FnSUNBZ0lDQWdhbTlpSUQwZ2MyVnNaaTV3WVhSb0xuSnpjR3hwZENnaUx5SXNJREVwV3kweFhRb2dJQ0FnSUNBZ0lDQWdJQ0J6Wld4bUxuTmxibVJmYW5OdmJpaHFiMkp6TG1kbGRDaHFiMklzSUhzaVpYSnliM0lpT2lBaVZXNXJibTkzYmlCcWIySWlmU2twQ2lBZ0lDQWdJQ0FnSUNBZ0lISmxkSFZ5YmdvS0lDQWdJQ0FnSUNCcFppQnpaV3htTG5CaGRHZ3VjM1JoY25SemQybDBhQ2dpTDJGd2FTOWtiM2R1Ykc5aFpDOGlLVG9LSUNBZ0lDQWdJQ0FnSUNBZ2MyVnNaaTVmWkc5M2JteHZZV1FvS1FvZ0lDQWdJQ0FnSUNBZ0lDQnlaWFIxY200S0NpQWdJQ0FnSUNBZ2MyVnNaaTV6Wlc1a1gycHpiMjRvZXlKbGNuSnZjaUk2SUNKT2IzUWdabTkxYm1RaWZTd2dOREEwS1FvS0lDQWdJR1JsWmlCZlpHOTNibXh2WVdRb2MyVnNaaWs2Q2lBZ0lDQWdJQ0FnY0dGMGFDd2dYeXdnY1hWbGNua2dQU0J6Wld4bUxuQmhkR2d1Y0dGeWRHbDBhVzl1S0NJL0lpa0tJQ0FnSUNBZ0lDQnBibXhwYm1VZ1BTQWlhVzVzYVc1bFBURWlJR2x1SUhGMVpYSjVDaUFnSUNBZ0lDQWdjR0Z5ZEhNZ1BTQndZWFJvTG5Od2JHbDBLQ0l2SWlrS0lDQWdJQ0FnSUNCcFppQnNaVzRvY0dGeWRITXBJQ0U5SURjNkNpQWdJQ0FnSUNBZ0lDQWdJSE5sYkdZdWMyVnVaRjlxYzI5dUtIc2laWEp5YjNJaU9pQWlTVzUyWVd4cFpDQndZWFJvSW4wc0lEUXdNQ2tLSUNBZ0lDQWdJQ0FnSUNBZ2NtVjBkWEp1Q2lBZ0lDQWdJQ0FnWHl3Z1h5d2dYeXdnYW05aUxDQnRiMlJsYkN3Z2MyOXVaeXdnWm1sc1pXNWhiV1VnUFNCYmRXNXhkVzkwWlNod0tTQm1iM0lnY0NCcGJpQndZWEowYzEwS0lDQWdJQ0FnSUNCbWIzSWdZeUJwYmlBb2FtOWlMQ0J0YjJSbGJDd2djMjl1Wnl3Z1ptbHNaVzVoYldVcE9nb2dJQ0FnSUNBZ0lDQWdJQ0JwWmlCdWIzUWdVMEZHUlM1dFlYUmphQ2hqS1NCdmNpQWlMaTRpSUdsdUlHTTZDaUFnSUNBZ0lDQWdJQ0FnSUNBZ0lDQnpaV3htTG5ObGJtUmZhbk52YmloN0ltVnljbTl5SWpvZ0lrbHVkbUZzYVdRZ2NHRjBhQ0o5TENBME1EQXBDaUFnSUNBZ0lDQWdJQ0FnSUNBZ0lDQnlaWFIxY200S0NpQWdJQ0FnSUNBZ2NtOXZkQ0E5SUU5VlZGQlZWRk11Y21WemIyeDJaU2dwQ2lBZ0lDQWdJQ0FnZEdGeVoyVjBJRDBnS0U5VlZGQlZWRk1nTHlCcWIySWdMeUJ0YjJSbGJDQXZJSE52Ym1jZ0x5Qm1hV3hsYm1GdFpTa3VjbVZ6YjJ4MlpTZ3BDaUFnSUNBZ0lDQWdkSEo1T2dvZ0lDQWdJQ0FnSUNBZ0lDQjBZWEpuWlhRdWNtVnNZWFJwZG1WZmRHOG9jbTl2ZENrS0lDQWdJQ0FnSUNCbGVHTmxjSFFnVm1Gc2RXVkZjbkp2Y2pvS0lDQWdJQ0FnSUNBZ0lDQWdjMlZzWmk1elpXNWtYMnB6YjI0b2V5Smxjbkp2Y2lJNklDSkpiblpoYkdsa0lIQmhkR2dpZlN3Z05EQXdLUW9nSUNBZ0lDQWdJQ0FnSUNCeVpYUjFjbTRLSUNBZ0lDQWdJQ0JwWmlCdWIzUWdkR0Z5WjJWMExtbHpYMlpwYkdVb0tUb0tJQ0FnSUNBZ0lDQWdJQ0FnYzJWc1ppNXpaVzVrWDJwemIyNG9leUpsY25KdmNpSTZJQ0pPYjNRZ1ptOTFibVFpZlN3Z05EQTBLUW9nSUNBZ0lDQWdJQ0FnSUNCeVpYUjFjbTRLQ2lBZ0lDQWdJQ0FnYzJsNlpTQTlJSFJoY21kbGRDNXpkR0YwS0NrdWMzUmZjMmw2WlFvZ0lDQWdJQ0FnSUhOMFlYSjBMQ0JsYm1Rc0lITjBZWFIxY3lBOUlEQXNJSE5wZW1VZ0xTQXhMQ0F5TURBS0lDQWdJQ0FnSUNCeWJtY2dQU0J6Wld4bUxtaGxZV1JsY25NdVoyVjBLQ0pTWVc1blpTSXNJQ0lpS1FvZ0lDQWdJQ0FnSUcwZ1BTQnlaUzV0WVhSamFDaHlJbUo1ZEdWelBTaGNaQ29wTFNoY1pDb3BKQ0lzSUhKdVp5NXpkSEpwY0NncEtTQnBaaUJ5Ym1jZ1pXeHpaU0JPYjI1bENpQWdJQ0FnSUNBZ2FXWWdiU0JoYm1RZ2MybDZaVG9LSUNBZ0lDQWdJQ0FnSUNBZ2N5d2daU0E5SUcwdVozSnZkWEFvTVNrc0lHMHVaM0p2ZFhBb01pa0tJQ0FnSUNBZ0lDQWdJQ0FnYVdZZ2N6b0tJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lITjBZWEowSUQwZ2FXNTBLSE1wQ2lBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0JwWmlCbE9nb2dJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJR1Z1WkNBOUlHMXBiaWhwYm5Rb1pTa3NJSE5wZW1VZ0xTQXhLUW9nSUNBZ0lDQWdJQ0FnSUNCbGJHbG1JR1U2Q2lBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0J6ZEdGeWRDQTlJRzFoZUNnd0xDQnphWHBsSUMwZ2FXNTBLR1VwS1FvZ0lDQWdJQ0FnSUNBZ0lDQnBaaUJ6ZEdGeWRDQStJR1Z1WkNCdmNpQnpkR0Z5ZENBK1BTQnphWHBsT2dvZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnYzJWc1ppNXpaVzVrWDNKbGMzQnZibk5sS0RReE5pa0tJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lITmxiR1l1YzJWdVpGOW9aV0ZrWlhJb0lrTnZiblJsYm5RdFVtRnVaMlVpTENCbUltSjVkR1Z6SUNvdmUzTnBlbVY5SWlrS0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUhObGJHWXVaVzVrWDJobFlXUmxjbk1vS1FvZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnY21WMGRYSnVDaUFnSUNBZ0lDQWdJQ0FnSUhOMFlYUjFjeUE5SURJd05nb0tJQ0FnSUNBZ0lDQnNaVzVuZEdnZ1BTQmxibVFnTFNCemRHRnlkQ0FySURFS0lDQWdJQ0FnSUNCelpXeG1Mbk5sYm1SZmNtVnpjRzl1YzJVb2MzUmhkSFZ6S1FvZ0lDQWdJQ0FnSUhObGJHWXVjMlZ1WkY5b1pXRmtaWElvSWtOdmJuUmxiblF0Vkhsd1pTSXNJQ0poZFdScGJ5OTNZWFlpS1FvZ0lDQWdJQ0FnSUhObGJHWXVjMlZ1WkY5b1pXRmtaWElvSWtGalkyVndkQzFTWVc1blpYTWlMQ0FpWW5sMFpYTWlLUW9nSUNBZ0lDQWdJSE5sYkdZdWMyVnVaRjlvWldGa1pYSW9Ja052Ym5SbGJuUXRSR2x6Y0c5emFYUnBiMjRpTEFvZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnWmlkN0ltbHViR2x1WlNJZ2FXWWdhVzVzYVc1bElHVnNjMlVnSW1GMGRHRmphRzFsYm5RaWZUc2dabWxzWlc1aGJXVTlJbnRtYVd4bGJtRnRaWDBpSnlrS0lDQWdJQ0FnSUNCelpXeG1Mbk5sYm1SZmFHVmhaR1Z5S0NKRGIyNTBaVzUwTFV4bGJtZDBhQ0lzSUhOMGNpaHNaVzVuZEdncEtRb2dJQ0FnSUNBZ0lHbG1JSE4wWVhSMWN5QTlQU0F5TURZNkNpQWdJQ0FnSUNBZ0lDQWdJSE5sYkdZdWMyVnVaRjlvWldGa1pYSW9Ja052Ym5SbGJuUXRVbUZ1WjJVaUxDQm1JbUo1ZEdWeklIdHpkR0Z5ZEgwdGUyVnVaSDB2ZTNOcGVtVjlJaWtLSUNBZ0lDQWdJQ0J6Wld4bUxtVnVaRjlvWldGa1pYSnpLQ2tLSUNBZ0lDQWdJQ0JwWmlCelpXeG1MbU52YlcxaGJtUWdQVDBnSWtoRlFVUWlPZ29nSUNBZ0lDQWdJQ0FnSUNCeVpYUjFjbTRLSUNBZ0lDQWdJQ0IzYVhSb0lIUmhjbWRsZEM1dmNHVnVLQ0p5WWlJcElHRnpJR1k2Q2lBZ0lDQWdJQ0FnSUNBZ0lHWXVjMlZsYXloemRHRnlkQ2tLSUNBZ0lDQWdJQ0FnSUNBZ2JHVm1kQ0E5SUd4bGJtZDBhQW9nSUNBZ0lDQWdJQ0FnSUNCM2FHbHNaU0JzWldaMElENGdNRG9LSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJR05vZFc1cklEMGdaaTV5WldGa0tHMXBiaWcyTlRVek5pd2diR1ZtZENrcENpQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNCcFppQnViM1FnWTJoMWJtczZDaUFnSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnWW5KbFlXc0tJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lITmxiR1l1ZDJacGJHVXVkM0pwZEdVb1kyaDFibXNwQ2lBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0JzWldaMElDMDlJR3hsYmloamFIVnVheWtLQ2dwa1pXWWdjblZ1WDNOd2JHbDBLR3B2WWl3Z2MzSmpMQ0J6ZEdWdGN5azZDaUFnSUNCdmRYUWdQU0JQVlZSUVZWUlRJQzhnYW05aUNpQWdJQ0J2ZFhRdWJXdGthWElvWlhocGMzUmZiMnM5VkhKMVpTa0tJQ0FnSUdwdlluTmJhbTlpWFM1MWNHUmhkR1VvYzNSaGRIVnpQU0p3Y205alpYTnphVzVuSWl3Z2NISnZaM0psYzNNOU5Ta0tJQ0FnSUcxdlpHVnNJRDBnSW1oMFpHVnRkV056SWdvZ0lDQWdkSEo1T2dvZ0lDQWdJQ0FnSUdOdFpDQTlJRnR6ZVhNdVpYaGxZM1YwWVdKc1pTd2dJaTF0SWl3Z0ltUmxiWFZqY3lJc0lDSXRiaUlzSUcxdlpHVnNMQ0FpTFMxdmRYUWlMQ0J6ZEhJb2IzVjBLU3dnYzNSeUtITnlZeWxkQ2lBZ0lDQWdJQ0FnYVdZZ1JFVldTVU5GV3lKa1pYWnBZMlVpWFNBOVBTQWlZM1ZrWVNJNkNpQWdJQ0FnSUNBZ0lDQWdJR050WkNBclBTQmJJaTFrSWl3Z0ltTjFaR0VpWFFvZ0lDQWdJQ0FnSUhCeWIyTWdQU0J6ZFdKd2NtOWpaWE56TGxCdmNHVnVLR050WkN3Z2MzUmtiM1YwUFhOMVluQnliMk5sYzNNdVVFbFFSU3dnYzNSa1pYSnlQWE4xWW5CeWIyTmxjM011VTFSRVQxVlVMQW9nSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lIUmxlSFE5VkhKMVpTd2dZblZtYzJsNlpUMHhLUW9nSUNBZ0lDQWdJR1p2Y2lCc2FXNWxJR2x1SUhCeWIyTXVjM1JrYjNWME9nb2dJQ0FnSUNBZ0lDQWdJQ0JvYVhRZ1BTQlFVazlIVWtWVFUxOVNSUzV6WldGeVkyZ29iR2x1WlNrS0lDQWdJQ0FnSUNBZ0lDQWdhV1lnYUdsME9nb2dJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ2FtOWljMXRxYjJKZFd5SndjbTluY21WemN5SmRJRDBnYldGNEtEVXNJRzFwYmlnNU5Td2dhVzUwS0docGRDNW5jbTkxY0NneEtTa3BLUW9nSUNBZ0lDQWdJSEJ5YjJNdWQyRnBkQ2dwQ2lBZ0lDQWdJQ0FnYVdZZ2NISnZZeTV5WlhSMWNtNWpiMlJsSUNFOUlEQTZDaUFnSUNBZ0lDQWdJQ0FnSUhKaGFYTmxJRkoxYm5ScGJXVkZjbkp2Y2lnaVJHVnRkV056SUdOdmRXeGtJRzV2ZENCd2NtOWpaWE56SUhSb2FYTWdabWxzWlM0aUtRb0tJQ0FnSUNBZ0lDQm1iMnhrWlhJZ1BTQnZkWFFnTHlCdGIyUmxiQ0F2SUhOeVl5NXpkR1Z0Q2lBZ0lDQWdJQ0FnWm05MWJtUWdQU0I3Y0M1emRHVnRPaUJ3SUdadmNpQndJR2x1SUdadmJHUmxjaTVuYkc5aUtDSXFMbmRoZGlJcElHbG1JSEF1YVhOZlptbHNaU2dwZlFvZ0lDQWdJQ0FnSUdOb2IzTmxiaUE5SUh0ck9pQjJJR1p2Y2lCckxDQjJJR2x1SUdadmRXNWtMbWwwWlcxektDa2dhV1lnYXlCcGJpQnpkR1Z0YzMwZ2IzSWdabTkxYm1RS0lDQWdJQ0FnSUNCbWFXeGxjeUE5SUh0ck9pQm1JaTloY0drdlpHOTNibXh2WVdRdmUycHZZbjB2ZTIxdlpHVnNmUzk3YzNKakxuTjBaVzE5TDN0MkxtNWhiV1Y5SWlCbWIzSWdheXdnZGlCcGJpQmphRzl6Wlc0dWFYUmxiWE1vS1gwS0lDQWdJQ0FnSUNCcWIySnpXMnB2WWwwdWRYQmtZWFJsS0hOMFlYUjFjejBpWTI5dGNHeGxkR1VpTENCd2NtOW5jbVZ6Y3oweE1EQXNJR1pwYkdWelBXWnBiR1Z6S1FvZ0lDQWdaWGhqWlhCMElFVjRZMlZ3ZEdsdmJpQmhjeUJsZUdNNkNpQWdJQ0FnSUNBZ2FtOWljMXRxYjJKZExuVndaR0YwWlNoemRHRjBkWE05SW1WeWNtOXlJaXdnWlhKeWIzSTljM1J5S0dWNFl5a3BDaUFnSUNCbWFXNWhiR3g1T2dvZ0lDQWdJQ0FnSUhSeWVUb0tJQ0FnSUNBZ0lDQWdJQ0FnYzNKakxuVnViR2x1YXlodGFYTnphVzVuWDI5clBWUnlkV1VwQ2lBZ0lDQWdJQ0FnWlhoalpYQjBJRVY0WTJWd2RHbHZiam9LSUNBZ0lDQWdJQ0FnSUNBZ2NHRnpjd29LQ21SbFppQnRZV2x1S0NrNkNpQWdJQ0JzYVc1bElEMGdJajBpSUNvZ05UZ0tJQ0FnSUhCeWFXNTBLR3hwYm1VcENpQWdJQ0J3Y21sdWRDZ2lJQ0FnV0ZaV1NVbFlJQzBnVEc5allXd2dSVzVuYVc1bElpa0tJQ0FnSUhCeWFXNTBLR3hwYm1VcENpQWdJQ0J3Y21sdWRDaG1JaUFnSUVSbGRtbGpaU0FnT2lCN1JFVldTVU5GV3lkdVlXMWxKMTE5SWlrS0lDQWdJSEJ5YVc1MEtHWWlJQ0FnUVdSa2NtVnpjeUE2SUdoMGRIQTZMeTk3U0U5VFZIMDZlMUJQVWxSOUlpa0tJQ0FnSUhCeWFXNTBLR3hwYm1VcENpQWdJQ0J3Y21sdWRDZ3BDaUFnSUNCd2NtbHVkQ2dpSUNBZ1VrVkJSRmtnTFNCbmJ5QmlZV05ySUhSdklIUm9aU0IzWldKemFYUmxMQ0JwZENCamIyNXVaV04wY3lCaGRYUnZiV0YwYVdOaGJHeDVMaUlwQ2lBZ0lDQndjbWx1ZENnaUlDQWdTMlZsY0NCMGFHbHpJSGRwYm1SdmR5QnZjR1Z1TGlCUWNtVnpjeUJEZEhKc0swTWdkRzhnYzNSdmNDNGlLUW9nSUNBZ2NISnBiblFvS1FvZ0lDQWdkSEo1T2dvZ0lDQWdJQ0FnSUZSb2NtVmhaR2x1WjBoVVZGQlRaWEoyWlhJb0tFaFBVMVFzSUZCUFVsUXBMQ0JJWVc1a2JHVnlLUzV6WlhKMlpWOW1iM0psZG1WeUtDa0tJQ0FnSUdWNFkyVndkQ0JMWlhsaWIyRnlaRWx1ZEdWeWNuVndkRG9LSUNBZ0lDQWdJQ0J3Y21sdWRDZ2lYRzRnSUNCRmJtZHBibVVnYzNSdmNIQmxaQzRpS1FvS0NtbG1JRjlmYm1GdFpWOWZJRDA5SUNKZlgyMWhhVzVmWHlJNkNpQWdJQ0J0WVdsdUtDa0sKWFZWSUlYX0I2NAokREVDIDwgLnh2dmlpeF9wYXlsb2FkLmI2NCA+IHh2dmlpeF9lbmdpbmUucHkgfHwgewogIGVjaG8gLWUgIiAgICAgICAke1J9RkFJTEVEIHRvIHVucGFjayB0aGUgZW5naW5lJHtOfSI7IHJtIC1mIC54dnZpaXhfcGF5bG9hZC5iNjQ7IGV4aXQgMTsKfQpybSAtZiAueHZ2aWl4X3BheWxvYWQuYjY0CgplY2hvICIgIFs0LzRdIFN0YXJ0aW5nIHRoZSBlbmdpbmUuLi4iCmVjaG8KZWNobyAiICA9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0iCmVjaG8gLWUgIiAgICAgJHtHfVJFQURZJHtOfSIKZWNobyAiICAgICBHbyBiYWNrIHRvIHRoZSB3ZWJzaXRlIC0gaXQgY29ubmVjdHMgYXV0b21hdGljYWxseS4iCmVjaG8gIiAgICAgS2VlcCB0aGlzIHdpbmRvdyBvcGVuLiBQcmVzcyBDdHJsK0MgdG8gc3RvcC4iCmVjaG8gIiAgPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09IgplY2hvCiIkVlBZIiB4dnZpaXhfZW5naW5lLnB5Cg=="};</script><!--/INSTALLER-PAYLOAD-->
+<script>
+const $ = id => document.getElementById(id);
+const file=$('file'), drop=$('drop'), split=$('split'), title=$('uploadTitle'), sub=$('uploadSub'),
+      modal=$('modal'), bar=$('bar'), pct=$('percent'), statusEl=$('status'), closeBtn=$('close'),
+      stemsCard=$('stemsCard'), stemPlayers=$('stemPlayers');
+
+const MAX_BYTES = 300*1024*1024;
+const ALLOWED_EXT = ['.wav','.mp3','.flac','.m4a','.aac','.ogg','.aiff','.aif'];
+const STEM_META = {vocals:['V','v'],drums:['D','d'],bass:['B','b'],other:['O','o']};
+
+let chosen = null;
+let current = null;    // the split currently loaded in the workspace
+
+/* ============ Local separation engine (runs in this browser) ============ */
+const engineBar=$('engineBar'), engIco=$('engIco'), engTitle=$('engTitle'), engMsg=$('engMsg'),
+      engConnect=$('engConnect'), engHelp=$('engHelp'), setupModal=$('setupModal');
+
+const ENGINE = { online: false, worker: null, busy: false };
+
+// Object URLs for generated stems, revoked between runs so memory stays flat.
+let stemUrls = [];
+function freeStemUrls(){ stemUrls.forEach(u => URL.revokeObjectURL(u)); stemUrls = []; }
+
+function setEngineState(state, title, msg){
+  engineBar.hidden = false;
+  engineBar.className = 'engine-bar' + (state === 'ok' ? ' ok' : state === 'busy' ? ' busy' : '');
+  engIco.textContent = state === 'ok' ? '✓' : state === 'busy' ? '' : '!';
+  engTitle.textContent = title;
+  engMsg.textContent = msg;
+  ENGINE.online = state === 'ok';
+  syncSplitButton();
+}
+
+function initEngine(){
+  const okWorker = typeof Worker !== 'undefined';
+  const okAudio  = !!(window.AudioContext || window.webkitAudioContext);
+  if(!okWorker || !okAudio){
+    setEngineState('off','Browser not supported',
+      'This app needs Web Workers and the Web Audio API. Try a recent Chrome, Edge, Firefox or Safari.');
+    return;
+  }
+  setEngineState('ok','Engine ready - runs entirely in your browser',
+    'No upload, no server, no install. Your audio never leaves this device.');
+  // Hide the banner shortly after load; it reappears on error or during work.
+  setTimeout(()=>{ if(ENGINE.online && !ENGINE.busy) engineBar.hidden = true; }, 3200);
+}
+
+engConnect.onclick = () => { engineBar.hidden = true; };
+engHelp.onclick = () => setupModal.classList.add('show');
+$('setupClose').onclick = () => setupModal.classList.remove('show');
+setupModal.addEventListener('click', e => { if(e.target === setupModal) setupModal.classList.remove('show'); });
+document.addEventListener('keydown', e => {
+  if(e.key !== 'Escape') return;
+  if(setupModal.classList.contains('show')){ setupModal.classList.remove('show'); return; }
+  if(modal.classList.contains('show') && closeBtn.style.display !== 'none') modal.classList.remove('show');
+});
+
+// Decode any browser-supported audio file down to raw stereo Float32 data.
+async function decodeFile(f){
+  const Ctx = window.AudioContext || window.webkitAudioContext;
+  const ctx = new Ctx();
+  try{
+    const buf = await ctx.decodeAudioData(await f.arrayBuffer());
+    const left = buf.getChannelData(0);
+    const right = buf.numberOfChannels > 1 ? buf.getChannelData(1) : buf.getChannelData(0);
+    return { left: Float32Array.from(left), right: Float32Array.from(right), sampleRate: buf.sampleRate };
+  } finally { ctx.close(); }
+}
+
+// Run the worker; resolves to { name: {url, blob} }
+function runSeparation(audio, stems, onProgress){
+  return new Promise((resolve, reject) => {
+    let w;
+    try{ w = new Worker('splitter.worker.js'); }
+    catch(err){ reject(new Error('Could not start the separation engine: ' + err.message)); return; }
+    ENGINE.worker = w;
+    w.onerror = e => { w.terminate(); ENGINE.worker = null;
+      reject(new Error(e.message || 'The separation engine crashed.')); };
+    w.onmessage = e => {
+      const m = e.data;
+      if(m.type === 'progress'){ onProgress(m.value, m.note); return; }
+      if(m.type === 'error'){ w.terminate(); ENGINE.worker = null; reject(new Error(m.message)); return; }
+      if(m.type === 'done'){
+        const files = {};
+        for(const name of Object.keys(m.stems)){
+          const blob = new Blob([m.stems[name].wav], {type:'audio/wav'});
+          const url = URL.createObjectURL(blob);
+          stemUrls.push(url);
+          files[name] = url;
+        }
+        w.terminate(); ENGINE.worker = null;
+        resolve(files);
+      }
+    };
+    w.postMessage(
+      { left: audio.left.buffer, right: audio.right.buffer, sampleRate: audio.sampleRate, stems },
+      [audio.left.buffer, audio.right.buffer]
+    );
+  });
+}
+
+
+
+/* ============ Offline support ============ */
+const netPill = $('netPill');
+
+function setOnlineState(){
+  const on = navigator.onLine;
+  netPill.hidden = on;
+  if(!on){
+    netPill.textContent = '⚡ Offline - Fast mode still works';
+  }
+  // Best needs the local engine, which is reachable even with no internet,
+  // so only re-check rather than disabling it outright.
+  if(!on && quality === 'best') checkLocal(false);
+}
+window.addEventListener('online',  setOnlineState);
+window.addEventListener('offline', setOnlineState);
+
+if('serviceWorker' in navigator && location.protocol.startsWith('http')){
+  window.addEventListener('load', async () => {
+    try{
+      const reg = await navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' });
+      // Check for a newer build every time the page loads, and again if the
+      // tab is left open, so a cached shell can never strand the user on an
+      // old version of the app.
+      reg.update().catch(()=>{});
+      setInterval(() => reg.update().catch(()=>{}), 60 * 60 * 1000);
+
+      reg.addEventListener('updatefound', () => {
+        const sw = reg.installing;
+        if(!sw) return;
+        sw.addEventListener('statechange', () => {
+          // A new worker took over while an old one was already controlling
+          // the page: activate it immediately and reload once.
+          if(sw.state === 'installed' && navigator.serviceWorker.controller){
+            sw.postMessage('skipWaiting');
+          }
+        });
+      });
+
+      let reloaded = false;
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if(reloaded) return;
+        reloaded = true;
+        location.reload();
+      });
+    }catch(err){
+      console.warn('Offline caching unavailable:', err);
+    }
+  });
+}
+
+/* ============ Quality selector ============ */
+let quality = 'fast';
+const qNote = $('qNote');
+
+document.querySelectorAll('.qopt').forEach(opt => {
+  opt.onclick = () => {
+    document.querySelectorAll('.qopt').forEach(o => o.classList.remove('on'));
+    opt.classList.add('on');
+    opt.querySelector('input').checked = true;
+    quality = opt.dataset.q;
+    qNote.className = 'qnote';
+    if(quality === 'best'){
+      if(LOCAL.online){
+        qNote.textContent = 'Local engine connected'
+          + (LOCAL.device ? ' - ' + LOCAL.device : '')
+          + '. Full Demucs quality, nothing leaves your computer.';
+      }else{
+        qNote.className = 'qnote warn';
+        qNote.innerHTML = 'Needs the engine installed on your computer. <b>Opening the installer...</b>';
+        openInstaller();
+      }
+    }else{
+      qNote.textContent = '';
+    }
+    syncSplitButton();
+  };
+});
+
+/* ============ Local engine: installer + auto-detect ============ */
+const LOCAL_BASE = 'http://127.0.0.1:8765';
+const installModal = $('installModal'), instStat = $('instStat');
+const LOCAL = { online: false, device: '', timer: null };
+
+async function pingLocal(ms = 2500){
+  const c = new AbortController();
+  const t = setTimeout(() => c.abort(), ms);
+  try{
+    const r = await fetch(LOCAL_BASE + '/api/health', { signal: c.signal, cache: 'no-store' });
+    if(!r.ok) return null;
+    const j = await r.json();
+    return j && j.ok ? j : null;
+  }catch(e){ return null; }
+  finally{ clearTimeout(t); }
+}
+
+function markSteps(connected){
+  ['ist1','ist2','ist3'].forEach(id => $(id).classList.toggle('done', connected));
+  $('ist4').classList.toggle('done', connected);
+  $('ist4').classList.toggle('active', !connected);
+}
+
+async function checkLocal(showBusy){
+  if(showBusy){ instStat.className = 'inst-stat wait'; instStat.textContent = 'Checking...'; }
+  const info = await pingLocal();
+  LOCAL.online = !!info;
+  LOCAL.device = info ? (info.device_name || info.device || '') : '';
+  if(info){
+    instStat.className = 'inst-stat ok';
+    instStat.textContent = 'Connected - ' + (info.device === 'cuda' ? 'GPU: ' : '') + LOCAL.device;
+    markSteps(true);
+    stopLocalWatch();
+  }else if(showBusy){
+    instStat.className = 'inst-stat';
+    instStat.textContent = 'Not running yet';
+    markSteps(false);
+  }
+  syncSplitButton();
+  return LOCAL.online;
+}
+
+// Poll while the install modal is open so the page reacts the moment the
+// engine comes up - the user never has to guess when it is ready.
+function startLocalWatch(){
+  stopLocalWatch();
+  LOCAL.timer = setInterval(() => checkLocal(false), 3000);
+}
+function stopLocalWatch(){ if(LOCAL.timer){ clearInterval(LOCAL.timer); LOCAL.timer = null; } }
+
+$('instClose').onclick = () => { installModal.classList.remove('show'); stopLocalWatch(); };
+$('instCheck').onclick = () => checkLocal(true);
+installModal.addEventListener('click', e => {
+  if(e.target === installModal){ installModal.classList.remove('show'); stopLocalWatch(); }
+});
+
+function openInstaller(){
+  installModal.classList.add('show');
+  markSteps(LOCAL.online);
+  checkLocal(true);
+  startLocalWatch();
+}
+
+/* ---- build the installer package in the browser ---- */
+// The engine and scripts are fetched from the site itself, then handed to the
+// user as individual downloads (no zip library needed, works fully offline).
+// ---------------------------------------------------------------------
+// Installer download.
+//
+// The two installer scripts are embedded in this page as base64 (see the
+// XVVIIX_INSTALLERS block above, injected by build-installers.py). Building
+// the file from that string means the download needs NO network request,
+// so it cannot be defeated by CORS, an opaque origin, a service worker or
+// an offline connection. A network fetch is only used as a backup if the
+// embedded copy is somehow missing.
+// ---------------------------------------------------------------------
+
+function b64ToBlob(b64, mime){
+  const bin = atob(b64);
+  const bytes = new Uint8Array(bin.length);
+  for(let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  return new Blob([bytes], {type: mime});
+}
+
+function saveBlob(blob, name){
+  // Edge/IE style API, still the most reliable when present.
+  if(navigator.msSaveOrOpenBlob){ navigator.msSaveOrOpenBlob(blob, name); return true; }
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = name;
+  a.rel = 'noopener';
+  a.style.display = 'none';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 60000);
+  return true;
+}
+
+function installerReady(name, b64, stat){
+  stat.className = 'inst-stat ok';
+  stat.innerHTML = 'Saved <b>' + name + '</b> - check your Downloads folder.';
+  $('ist1').classList.add('done');
+  $('ist2').classList.add('active');
+  // The browser never tells us whether the file was really written, and some
+  // embedded/sandboxed viewers discard it silently. Always offer plan B.
+  showManualBox(name, b64, false);
+}
+
+// Plan B: show the installer as plain text. The user copies it and saves it
+// with Notepad. This needs no download permission at all, so it works even
+// inside a sandboxed preview frame where every download API is blocked.
+function showManualBox(name, b64, forced){
+  const host = $('manualBox');
+  if(!host) return;
+  let text;
+  try{ text = atob(b64); }catch(e){ return; }
+
+  host.hidden = false;
+  host.innerHTML =
+    '<h4>' + (forced
+      ? 'This preview window blocks downloads'
+      : 'Did not get the file?') + '</h4>'
+    + '<p>' + (forced
+      ? 'Open the site in a real browser tab, or use the manual method below - it always works.'
+      : 'Some preview windows silently discard downloads. If your Downloads folder is empty, use this instead.') + '</p>'
+    + '<p><b>Manual install:</b> press Copy, open Notepad, paste, then '
+    + 'File &gt; Save As, set <i>Save as type</i> to <b>All Files</b>, '
+    + 'and name it <b>' + name + '</b>. Then double-click it.</p>'
+    + '<textarea id="manualText" readonly spellcheck="false"></textarea>'
+    + '<div class="row">'
+    + '<button class="eng-btn" id="copyInst">Copy installer text</button>'
+    + '<a class="eng-btn ghost" href="' + location.href
+    + '" target="_blank" rel="noopener">Open site in new tab</a>'
+    + '<span class="ok" id="copyOk"></span>'
+    + '</div>';
+
+  $('manualText').value = text;
+
+  // IMPORTANT: copy from `text`, not from the textarea. The textarea
+  // normalises CRLF to LF, and a .bat file with bare LF can misbehave in
+  // cmd.exe (labels and goto in particular).
+  $('copyInst').onclick = async () => {
+    let done = false;
+    try{
+      await navigator.clipboard.writeText(text);
+      done = true;
+    }catch(e){
+      // Clipboard API unavailable (needs a secure context). Fall back to the
+      // textarea; warn that line endings may need the .sh instead.
+      const ta = $('manualText');
+      ta.focus(); ta.select();
+      try{ done = document.execCommand('copy'); }catch(e2){ done = false; }
+    }
+    $('copyOk').textContent = done
+      ? 'Copied - paste into Notepad and save as ' + name
+      : 'Press Ctrl+C now (the text is selected).';
+  };
+}
+
+function downloadsLikelyBlocked(){
+  try{
+    if(!('download' in document.createElement('a'))) return true;
+    if(location.origin === 'null') return true;
+    if(window.self !== window.top){
+      try{ void window.top.location.href; }
+      catch(e){ return true; }
+    }
+  }catch(e){ return true; }
+  return false;
+}
+
+async function downloadInstaller(platform){
+  const name = platform === 'win' ? 'install-xvviix.bat' : 'install-xvviix.sh';
+  const key  = platform === 'win' ? 'bat' : 'sh';
+  const stat = $('instStat');
+  const payload = (window.XVVIIX_INSTALLERS || {})[key];
+
+  if(!payload){
+    stat.className = 'inst-stat';
+    stat.textContent = 'Installer payload missing - rebuild the page.';
+    return;
+  }
+
+  // Known-blocked context: skip the pointless attempt, go straight to plan B.
+  if(downloadsLikelyBlocked()){
+    stat.className = 'inst-stat wait';
+    stat.textContent = 'Downloads are blocked in this window - use the box below.';
+    showManualBox(name, payload, true);
+    return;
+  }
+
+  stat.className = 'inst-stat wait';
+  stat.textContent = 'Preparing ' + name + '...';
+  try{
+    const blob = b64ToBlob(payload, platform === 'win'
+      ? 'application/x-bat' : 'application/x-sh');
+    saveBlob(blob, name);
+    installerReady(name, payload, stat);
+  }catch(err){
+    stat.className = 'inst-stat';
+    stat.textContent = 'Automatic save failed - use the box below.';
+    showManualBox(name, payload, true);
+  }
+}
+
+// The buttons are real links, so they still work if scripting fails.
+// preventDefault only when we can handle it ourselves (nicer status text).
+$('dlWin').onclick = e => { e.preventDefault(); downloadInstaller('win'); };
+$('dlMac').onclick = e => {
+  e.preventDefault();
+  $('runHint').innerHTML = 'Put it in its own folder, open Terminal there and run '
+    + '<code>bash install-xvviix.sh</code>';
+  downloadInstaller('nix');
+};
+
+/* ---- run a job on the local engine ---- */
+async function separateLocally(file, stems, onProgress){
+  onProgress(5, 'Sending to your local engine...');
+  const fd = new FormData();
+  fd.append('file', file);
+  fd.append('stems', JSON.stringify(stems));
+  const r = await fetch(LOCAL_BASE + '/api/split', { method: 'POST', body: fd });
+  const j = await r.json();
+  if(!r.ok) throw new Error(j.error || 'Local engine rejected the file');
+
+  while(true){
+    await new Promise(x => setTimeout(x, 1000));
+    const res = await fetch(LOCAL_BASE + '/api/status/' + j.job_id);
+    const st = await res.json();
+    if(st.error && !st.status) throw new Error(st.error);
+    if(st.status === 'error') throw new Error(st.error || 'Separation failed');
+    onProgress(Math.max(5, Math.min(95, st.progress || 5)), 'Separating with Demucs...');
+    if(st.status === 'complete'){
+      onProgress(96, 'Fetching stems...');
+      const files = {};
+      for(const [name, rel] of Object.entries(st.files || {})){
+        const blob = await (await fetch(LOCAL_BASE + rel + '?inline=1')).blob();
+        const u = URL.createObjectURL(blob);
+        stemUrls.push(u);
+        files[name] = u;
+      }
+      return files;
+    }
+  }
+}
+
+/* ---------- file picking ---------- */
+function setFile(f){
+  if(!f) return;
+  const ext = '.' + (f.name.split('.').pop()||'').toLowerCase();
+  if(!f.type.startsWith('audio/') && !ALLOWED_EXT.includes(ext)){
+    sub.innerHTML='<b style="color:var(--danger)">Unsupported file type.</b> Use WAV, MP3, FLAC, M4A, AAC, OGG or AIFF - '
+      +'<label class="browse" for="file">pick another</label>'; return;
+  }
+  if(f.size > MAX_BYTES){
+    sub.innerHTML='<b style="color:var(--danger)">File is too large for in-browser processing.</b> '
+      +'<label class="browse" for="file">pick another</label>'; return;
+  }
+  const replacing = !!chosen;
+  chosen = f;
+  title.textContent = f.name;
+  sub.textContent = (f.size/1048576).toFixed(1)+' MB - ready to process'
+    + (replacing ? ' - replaced previous track' : '');
+  split.disabled = false;
+  split.textContent = 'Split into stems';
+  const player = $('player');
+  try{ player.pause(); }catch(e){}
+  if(player.src && player.src.startsWith('blob:')) URL.revokeObjectURL(player.src);
+  player.src = URL.createObjectURL(f);
+  $('preview').style.display = 'block';
+  player.onloadedmetadata = () => {
+    const d = player.duration;
+    $('duration').textContent = isFinite(d) ? Math.floor(d/60)+':'+String(Math.floor(d%60)).padStart(2,'0') : '';
+  };
+}
+file.onchange = e => { setFile(e.target.files[0]); file.value = ''; };
+
+/* ---------- replace / remove the loaded song (only one song at a time) ---------- */
+function clearFile(){
+  chosen = null;
+  const player = $('player');
+  try{ player.pause(); }catch(e){}
+  if(player.src && player.src.startsWith('blob:')) URL.revokeObjectURL(player.src);
+  player.removeAttribute('src'); player.load();
+  $('preview').style.display = 'none';
+  $('duration').textContent = '';
+  title.textContent = 'Drop your song here';
+  sub.innerHTML = 'or <label class="browse" for="file">browse files</label>';
+  file.value = '';
+  clearResults();
+  syncSplitButton();
+}
+$('swapBtn').onclick = e => { e.preventDefault(); e.stopPropagation(); file.click(); };
+$('removeBtn').onclick = e => { e.preventDefault(); e.stopPropagation(); clearFile(); };
+['dragenter','dragover'].forEach(x=>drop.addEventListener(x,e=>{e.preventDefault();drop.classList.add('over')}));
+['dragleave','drop'].forEach(x=>drop.addEventListener(x,e=>{e.preventDefault();drop.classList.remove('over')}));
+drop.addEventListener('drop',e=>setFile(e.dataTransfer.files[0]));
+
+/* ---------- sidebar nav (now actually filters the view) ---------- */
+function showView(name){
+  const uploadCol = drop.parentElement;      // section holding the uploader
+  const stemsCol  = document.querySelector('.grid > section.card'); // stem chooser
+  const isNew = name === 'New split';
+  const isEditor = name === 'Master editor';
+  drop.style.display = isNew ? '' : 'none';
+  stemsCol.style.display = isNew ? '' : 'none';
+  // The Master editor tab is the mixing desk only - the stem player list
+  // belongs to New split / Exports.
+  stemsCard.style.display = (current && !isEditor) ? '' : 'none';
+  editorCard.style.display = (isNew || isEditor) ? '' : 'none';
+  if(isEditor) loadEditor(current);
+  document.querySelector('.eyebrow').textContent =
+    name === 'Exports' ? 'Export center' : name === 'Master editor' ? 'Mixing desk' : 'Audio workspace';
+  document.querySelector('.top h1').textContent =
+    name === 'Exports' ? 'Download your stems.' : name === 'Master editor' ? 'Remix your stems.' : 'Split a song into stems.';
+  document.querySelector('.top p').textContent =
+    name === 'Exports' ? 'Preview each stem, then grab the files you need.' :
+    name === 'Master editor' ? 'Balance levels, pan, mute or solo - then export a custom mix.' :
+    'Drop a track in, get clean instrument layers out - no upload, no install.';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+document.querySelectorAll('.nav button').forEach(btn => btn.onclick = () => {
+  document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('active'));
+  btn.classList.add('active');
+  showView(btn.textContent.trim());
+});
+
+/* ---------- stem checkbox helpers ---------- */
+const allBtn = $('all');
+allBtn.onclick = () => {
+  const boxes = [...document.querySelectorAll('.stem input')];
+  const allOn = boxes.every(b=>b.checked);
+  boxes.forEach(b => b.checked = !allOn);
+  allBtn.textContent = allOn ? 'Select all' : 'Clear all';
+  syncSplitButton();
+};
+function syncSplitButton(){
+  const n = document.querySelectorAll('.stem input:checked').length;
+  if(!ENGINE.online){ split.disabled = true; split.textContent = 'Engine unavailable'; return; }
+  if(!chosen){ split.disabled = true; split.textContent = 'Choose an audio file first'; return; }
+  split.disabled = n === 0;
+  split.textContent = n === 0 ? 'Select at least one stem' : `Split into ${n} stem${n>1?'s':''}`;
+}
+document.querySelectorAll('.stem input').forEach(b => b.addEventListener('change', syncSplitButton));
+
+// Make the entire row a hit target, not just the checkbox. The native <label>
+// already forwards clicks on the text, so ignore those (and the checkbox
+// itself) or the toggle would fire twice and cancel out.
+document.querySelectorAll('.stem').forEach(row => {
+  row.addEventListener('click', e => {
+    if(e.target.closest('label') || e.target.tagName === 'INPUT') return;
+    const box = row.querySelector('input');
+    if(!box) return;
+    box.checked = !box.checked;
+    box.dispatchEvent(new Event('change', {bubbles:true}));
+  });
+});
+
+/* ---------- rendering results ---------- */
+function renderStems(job){
+  stemPlayers.innerHTML = Object.entries(job.stems).map(([name,rel]) => {
+    const url = rel;
+    const meta = STEM_META[name] || ['♫','o'];
+    return `<div class="stem-player">
+      <div class="sp-head">
+        <div class="stem-icon ${meta[1]}">${meta[0]}</div>
+        <b>${name}</b>
+        <a class="dl" href="${url}" download>Download</a>
+      </div>
+      <audio controls preload="none" src="${url}${url.includes('?')?'&':'?'}inline=1"></audio>
+    </div>`;
+  }).join('');
+  const tab = document.querySelector('.nav button.active');
+  const tabName = tab ? tab.textContent.trim() : 'New split';
+  stemsCard.style.display = (Object.keys(job.stems).length && tabName !== 'Master editor') ? '' : 'none';
+  editorCard.style.display = (tabName === 'New split' || tabName === 'Master editor') ? '' : 'none';
+  if(editorCard.style.display !== 'none' && ED.jobKey !== null) loadEditor(job);
+  else { edHint.style.display=''; edHint.innerHTML='Mix these stems together - <button class="pill" id="edLoadBtn" style="border:0;cursor:pointer">open in master editor</button>'; edBody.style.display='none'; ED.jobKey=null;
+    const b=$('edLoadBtn'); if(b) b.onclick=()=>loadEditor(job); }
+}
+function clearResults(){
+  current = null;
+  freeStemUrls();
+  stemsCard.style.display = 'none';
+  stemPlayers.innerHTML = '';
+  try{ edStop.onclick(); }catch(e){}
+  ED.jobKey = null; ED.buffers = {}; ED.tracks = []; ED.duration = 0;
+  edTracks.innerHTML = '';
+  edBody.style.display = 'none';
+  edHint.style.display = '';
+  edHint.textContent = 'Load a completed split to mix its stems together.';
+  editorCard.style.display = 'none';
+}
+$('downloadAll').onclick = () => {
+  if(!current) return;
+  Object.entries(current.stems).forEach(([name,url],i) => setTimeout(() => {
+    const a = document.createElement('a');
+    a.href = url; a.download = name + '.wav';
+    document.body.appendChild(a); a.click(); a.remove();
+  }, i*400));
+};
+closeBtn.onclick = () => modal.classList.remove('show');
+modal.addEventListener('click', e => { if(e.target === modal && closeBtn.style.display !== 'none') modal.classList.remove('show'); });
+
+
+/* ---------- split job (all local) ---------- */
+split.onclick = async () => {
+  if(!chosen) return;
+  if(!ENGINE.online){ engHelp.click(); return; }
+  const selected = [...document.querySelectorAll('.stem input:checked')].map(x=>x.id);
+  if(!selected.length) return;
+
+  modal.classList.add('show');
+  closeBtn.style.display='none';
+  $('modalTitle').textContent = 'Separating your song';
+  $('modalText').textContent = quality === 'best'
+    ? 'Running on your own computer - nothing is uploaded.'
+    : 'Everything runs on this device - nothing is uploaded.';
+  bar.style.width='2%'; pct.textContent='2%'; statusEl.textContent='Decoding audio...';
+  split.disabled = true;
+  ENGINE.busy = true;
+
+  try{
+    freeStemUrls();
+    const report = (p, note) => {
+      bar.style.width = p+'%';
+      pct.textContent = p+'%';
+      if(note) statusEl.textContent = note;
+    };
+
+    let files = null;
+    let fellBack = false;
+
+    if(quality === 'best'){
+      try{
+        $('modalText').textContent = 'Running Demucs on your own computer.';
+        files = await separateLocally(chosen, selected, report);
+      }catch(err){
+        // Engine closed, crashed or was never started - degrade to the
+        // browser engine so a split never fails outright.
+        fellBack = true;
+        console.warn('Local engine unavailable:', err);
+        LOCAL.online = false;
+        report(4, 'Local engine unavailable - using the browser engine...');
+        $('modalText').textContent = 'The local engine did not respond, so this ran in your browser instead.';
+      }
+    }
+
+    if(!files){
+      const audio = await decodeFile(chosen);
+      if(!audio.left.length) throw new Error('That file contains no audio data.');
+      const mins = audio.left.length / audio.sampleRate / 60;
+      if(mins > 12) throw new Error('Track is longer than 12 minutes - trim it first so the browser does not run out of memory.');
+      files = await runSeparation(audio, selected, report);
+    }
+
+    bar.style.width='100%'; pct.textContent='100%';
+    statusEl.textContent='Finished - files ready';
+    $('modalTitle').textContent='Split complete';
+    const count = Object.keys(files).length;
+    const engineName = (quality === 'best' && !fellBack)
+      ? ('Demucs on your computer' + (LOCAL.device ? ' - ' + LOCAL.device : ''))
+      : 'the browser engine';
+    $('modalText').textContent = `${count} stem${count>1?'s were':' was'} separated from ${chosen.name} using ${engineName}. Preview them below.`;
+    closeBtn.style.display='inline-block';
+    current = {name: chosen.name, stems: files,
+               at: new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})};
+    renderStems(current);
+  }catch(e){
+    const oom = /allocation|out of memory|Array buffer/i.test(e.message || '');
+    $('modalTitle').textContent = oom ? 'Ran out of memory' : 'Could not split audio';
+    $('modalText').textContent = oom
+      ? 'This track is too large for the browser to process. Try a shorter clip or fewer stems.'
+      : (e.message || 'Unknown error');
+    statusEl.textContent='Something went wrong';
+    closeBtn.style.display='inline-block';
+    bar.style.width='0'; pct.textContent=' - ';
+  }finally{
+    ENGINE.busy = false;
+    syncSplitButton();
+  }
+};
+
+/* ================= Master editor (fully optional) ================= */
+const editorCard=$('editorCard'), edBody=$('edBody'), edHint=$('edHint'), edTracks=$('edTracks'),
+      edPlay=$('edPlay'), edStop=$('edStop'), edSeek=$('edSeek'), edTime=$('edTime'), edDur=$('edDur'),
+      edLoop=$('edLoop'), edMaster=$('edMaster'), edMasterVal=$('edMasterVal'),
+      edExport=$('edExport'), edStatus=$('edStatus'), edResetBtn=$('edReset');
+
+const ED = {
+  ctx:null, master:null, tracks:[], buffers:{}, duration:0,
+  playing:false, startedAt:0, offset:0, raf:0, jobKey:null, loading:false
+};
+
+function edCtx(){
+  if(!ED.ctx){
+    ED.ctx = new (window.AudioContext||window.webkitAudioContext)();
+    ED.master = ED.ctx.createGain();
+    ED.master.gain.value = edMaster.value/100;
+    ED.master.connect(ED.ctx.destination);
+  }
+  return ED.ctx;
+}
+const fmt = t => (isFinite(t)?Math.floor(t/60)+':'+String(Math.floor(t%60)).padStart(2,'0'):'0:00');
+
+async function loadEditor(job){
+  if(!job || !Object.keys(job.stems).length){
+    edBody.style.display='none';
+    edHint.style.display='';
+    edHint.textContent='Load a completed split to mix its stems together.';
+    return;
+  }
+  const key = JSON.stringify(job.stems);
+  if(key === ED.jobKey || ED.loading) return;
+  ED.loading = true;
+  edStop.click?.();
+  edHint.style.display='';
+  edHint.textContent='Decoding stems for the mixer...';
+  edBody.style.display='none';
+  const ctx = edCtx();
+  try{
+    const names = Object.keys(job.stems);
+    const bufs = await Promise.all(names.map(async n => {
+      const url = job.stems[n];
+      const ab = await (await fetch(url)).arrayBuffer();
+      return ctx.decodeAudioData(ab);
+    }));
+    ED.buffers = {}; ED.duration = 0;
+    names.forEach((n,i)=>{ ED.buffers[n]=bufs[i]; ED.duration=Math.max(ED.duration,bufs[i].duration); });
+    ED.jobKey = key;
+    ED.offset = 0;
+    buildTracks(names);
+    edDur.textContent = fmt(ED.duration);
+    edTime.textContent = '0:00';
+    edSeek.value = 0;
+    edHint.style.display='none';
+    edBody.style.display='';
+    edStatus.textContent = `${names.length} stems loaded - ${fmt(ED.duration)}`;
+  }catch(e){
+    edHint.textContent = 'Could not load stems into the mixer: ' + e.message;
+  }finally{ ED.loading = false; }
+}
+
+function buildTracks(names){
+  ED.tracks = names.map(n => ({name:n, vol:1, pan:0, mute:false, solo:false, gain:null, panner:null, src:null}));
+  edTracks.innerHTML = ED.tracks.map((t,i)=>{
+    const meta = STEM_META[t.name] || ['♫','o'];
+    return `<div class="trk" data-i="${i}">
+      <div class="stem-icon ${meta[1]}">${meta[0]}</div>
+      <b>${t.name}</b>
+      <div class="knob"><span>VOL <i data-vol="${i}">100%</i></span>
+        <input type="range" min="0" max="150" value="100" data-ctl="vol" data-i="${i}"></div>
+      <div class="knob"><span>PAN <i data-pan="${i}">C</i></span>
+        <input type="range" min="-100" max="100" value="0" data-ctl="pan" data-i="${i}"></div>
+      <div class="btns">
+        <button class="msbtn mute" data-ctl="mute" data-i="${i}">M</button>
+        <button class="msbtn solo" data-ctl="solo" data-i="${i}">S</button>
+      </div></div>`;
+  }).join('');
+
+  edTracks.querySelectorAll('input[data-ctl]').forEach(el => el.oninput = () => {
+    const i = +el.dataset.i, t = ED.tracks[i], v = +el.value;
+    if(el.dataset.ctl === 'vol'){
+      t.vol = v/100;
+      edTracks.querySelector(`[data-vol="${i}"]`).textContent = v+'%';
+    }else{
+      t.pan = v/100;
+      edTracks.querySelector(`[data-pan="${i}"]`).textContent =
+        v === 0 ? 'C' : (v<0 ? 'L'+Math.abs(v) : 'R'+v);
+      if(t.panner) t.panner.pan.value = t.pan;
+    }
+    applyGains();
+  });
+  edTracks.querySelectorAll('button[data-ctl]').forEach(el => el.onclick = () => {
+    const i = +el.dataset.i, t = ED.tracks[i];
+    t[el.dataset.ctl] = !t[el.dataset.ctl];
+    el.classList.toggle('on', t[el.dataset.ctl]);
+    applyGains();
+  });
+  applyGains();
+}
+
+function effectiveGain(t){
+  const anySolo = ED.tracks.some(x=>x.solo);
+  if(t.mute) return 0;
+  if(anySolo && !t.solo) return 0;
+  return t.vol;
+}
+function applyGains(){
+  ED.tracks.forEach(t=>{
+    const g = effectiveGain(t);
+    if(t.gain) t.gain.gain.setTargetAtTime(g, ED.ctx.currentTime, 0.01);
+    const row = edTracks.querySelector(`.trk[data-i="${ED.tracks.indexOf(t)}"]`);
+    if(row) row.classList.toggle('muted', g === 0);
+  });
+}
+
+function startPlayback(from){
+  const ctx = edCtx();
+  if(ctx.state === 'suspended') ctx.resume();
+  stopSources();
+  ED.tracks.forEach(t=>{
+    const buf = ED.buffers[t.name];
+    if(!buf) return;
+    const src = ctx.createBufferSource(); src.buffer = buf;
+    const gain = ctx.createGain(); gain.gain.value = effectiveGain(t);
+    const panner = ctx.createStereoPanner(); panner.pan.value = t.pan;
+    src.connect(gain).connect(panner).connect(ED.master);
+    src.start(0, Math.min(from, buf.duration));
+    t.src = src; t.gain = gain; t.panner = panner;
+  });
+  ED.startedAt = ctx.currentTime - from;
+  ED.playing = true;
+  edPlay.textContent = '❚❚';
+  tick();
+}
+function stopSources(){
+  ED.tracks.forEach(t=>{ try{ t.src && t.src.stop(); }catch(e){} t.src=null; });
+  cancelAnimationFrame(ED.raf);
+}
+function pausePlayback(){
+  ED.offset = Math.min(ED.ctx.currentTime - ED.startedAt, ED.duration);
+  stopSources();
+  ED.playing = false;
+  edPlay.textContent = '▶';
+}
+function tick(){
+  if(!ED.playing) return;
+  const pos = ED.ctx.currentTime - ED.startedAt;
+  if(pos >= ED.duration){
+    if(edLoop.checked){ startPlayback(0); return; }
+    ED.offset = 0; stopSources(); ED.playing = false;
+    edPlay.textContent = '▶'; edSeek.value = 0; edTime.textContent = '0:00';
+    return;
+  }
+  edSeek.value = Math.round(pos / ED.duration * 1000);
+  edTime.textContent = fmt(pos);
+  ED.raf = requestAnimationFrame(tick);
+}
+
+edPlay.onclick = () => {
+  if(!ED.duration) return;
+  ED.playing ? pausePlayback() : startPlayback(ED.offset);
+};
+edStop.onclick = () => {
+  stopSources(); ED.playing = false; ED.offset = 0;
+  edPlay.textContent = '▶'; edSeek.value = 0; edTime.textContent = '0:00';
+};
+edSeek.oninput = () => {
+  if(!ED.duration) return;
+  const pos = edSeek.value/1000 * ED.duration;
+  edTime.textContent = fmt(pos);
+  ED.offset = pos;
+  if(ED.playing) startPlayback(pos);
+};
+edMaster.oninput = () => {
+  edMasterVal.textContent = edMaster.value + '%';
+  if(ED.master) ED.master.gain.value = edMaster.value/100;
+};
+edResetBtn.onclick = () => {
+  // Stop and rewind the song first. buildTracks() replaces the track objects,
+  // which would otherwise orphan any playing BufferSource (audio that keeps
+  // going with nothing left holding a reference to stop it).
+  const names = ED.tracks.map(t => t.name);
+  stopSources();
+  ED.playing = false;
+  ED.offset = 0;
+  edPlay.textContent = '▶';
+  edSeek.value = 0;
+  edTime.textContent = '0:00';
+  edLoop.checked = false;
+
+  edMaster.value = 100; edMasterVal.textContent = '100%';
+  if(ED.master) ED.master.gain.value = 1;
+  if(names.length) buildTracks(names);
+  edStatus.textContent = 'Mix and playback reset to the start.';
+};
+
+/* ---- offline mixdown to WAV ---- */
+function encodeWav(buffer){
+  const ch = buffer.numberOfChannels, len = buffer.length;
+  const data = new DataView(new ArrayBuffer(44 + len*ch*2));
+  const w = (o,s) => { for(let i=0;i<s.length;i++) data.setUint8(o+i, s.charCodeAt(i)); };
+  w(0,'RIFF'); data.setUint32(4, 36+len*ch*2, true); w(8,'WAVE'); w(12,'fmt ');
+  data.setUint32(16,16,true); data.setUint16(20,1,true); data.setUint16(22,ch,true);
+  data.setUint32(24,buffer.sampleRate,true); data.setUint32(28,buffer.sampleRate*ch*2,true);
+  data.setUint16(32,ch*2,true); data.setUint16(34,16,true); w(36,'data');
+  data.setUint32(40,len*ch*2,true);
+  const chans = Array.from({length:ch},(_,c)=>buffer.getChannelData(c));
+  let o = 44;
+  for(let i=0;i<len;i++) for(let c=0;c<ch;c++){
+    let v = Math.max(-1, Math.min(1, chans[c][i]));
+    data.setInt16(o, v<0 ? v*0x8000 : v*0x7fff, true); o += 2;
+  }
+  return new Blob([data], {type:'audio/wav'});
+}
+edExport.onclick = async () => {
+  if(!ED.duration) return;
+  const active = ED.tracks.filter(t => effectiveGain(t) > 0);
+  if(!active.length){ edStatus.textContent = 'Every track is muted - nothing to export.'; return; }
+  edExport.disabled = true;
+  edStatus.textContent = 'Rendering mixdown...';
+  try{
+    const sr = ED.ctx.sampleRate;
+    const off = new OfflineAudioContext(2, Math.ceil(ED.duration*sr), sr);
+    const mg = off.createGain(); mg.gain.value = edMaster.value/100; mg.connect(off.destination);
+    active.forEach(t=>{
+      const src = off.createBufferSource(); src.buffer = ED.buffers[t.name];
+      const g = off.createGain(); g.gain.value = effectiveGain(t);
+      const p = off.createStereoPanner(); p.pan.value = t.pan;
+      src.connect(g).connect(p).connect(mg); src.start(0);
+    });
+    const rendered = await off.startRendering();
+    const url = URL.createObjectURL(encodeWav(rendered));
+    const base = (current?.name || 'mix').replace(/\.[^.]+$/,'');
+    const a = document.createElement('a');
+    a.href = url; a.download = base + ' (XVVIIX mix).wav';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url), 4000);
+    edStatus.textContent = `Exported ${active.length}-stem mix - ${fmt(ED.duration)}`;
+  }catch(e){
+    edStatus.textContent = 'Export failed: ' + e.message;
+  }finally{ edExport.disabled = false; }
+};
+
+syncSplitButton();
+loadEditor(null);
+initEngine();
+checkLocal(false);
+setOnlineState();
+</script></body></html>
