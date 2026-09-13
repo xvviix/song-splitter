@@ -73,14 +73,6 @@ Then open <http://localhost:8000>.
 
 > Opening `index.html` directly with `file://` will not work - browsers refuse to start Web Workers from that scheme. Serve it over HTTP.
 
-## Deploying
-
-1. Push to GitHub.
-2. **Settings → Pages → Build and deployment → Source: GitHub Actions**.
-3. Push to `main` - the included workflow publishes the site automatically.
-
-Update the URLs in `index.html` (canonical/OG tags), `sitemap.xml`, `robots.txt` and `404.html` if your repo name differs.
-
 ## Project layout
 
 | File | Purpose |
